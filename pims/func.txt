@@ -1,0 +1,7 @@
+
+- Component Management 
+	- ownership and access control
+	- other info like CDETS Comp, Traige alias, Category, functionality etc
+- Source Ref point Releases (PCR/EFR submission and approval)
+- Build and Test during Source Ref point releases (Configurabel options)
+- 

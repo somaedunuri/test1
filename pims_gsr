@@ -1,0 +1,100 @@
+
+Hi Soma,
+I created a temporary report called ‘soma_comp_info’ which gives only the 3 things you want : (only shows DE manager in output) It also works JSON/vs. non-JSON output:
+
+JSON:
+/auto/ioxws1/pims/raccary/pims-ws/pims/perlmod-ext/jenkins [246] %pims gsr -r soma_comp_info -comp_name aaa/lib -format json
+[
+   {
+      "Comp Name": "aaa/lib",
+      "DE Mgr": "rshree",
+      "CDETS Name": "aaa-lib"
+   }
+]
+Non-JSON:
+/auto/ioxws1/pims/raccary/pims-ws/pims/perlmod-ext/jenkins [247] %pims gsr -r soma_comp_info -comp_name aaa/lib
+Comp Name       CDETS Name      DE Mgr
+aaa/lib aaa-lib rshree
+
+Thanks,
+Ray
+
+From: Raymond Accary (raccary) 
+Sent: Wednesday, July 13, 2016 10:33 AM
+To: Soma Edunuri (soma) <soma@cisco.com>; pims-dev(mailer list) <pims-dev@cisco.com>
+Subject: RE: How Do I interpret this data
+
+Hi Soma,
+That’s correct. This is how the report was designed. It returns a line for each ‘member’ who is either DE Mgr/Owner. For aaa/lib,  there’s a single DE manager and two owners; that’s why 3 lines are returned. I’m not sure why it was designed that way, but this is giving the right information.
+
+The output can be generated in json format however as is it dumps all the output:
+pims gsr -r comp_info -comp_name aaa/lib -format json
+[
+   {
+      "Comp Code": "aaa-lib",
+      "DE Mgr/Owners": "rshree",
+      "Notified/Triage Alias": "q-aaa-dev",
+      "Permission": "DE MGR",
+      "CDETS Name": "aaa-lib",
+      "Comp Name": "aaa/lib",
+      "Sanity Name": "enxr_sanity",
+      "CDETS Keywd": "aaa"
+   },
+   {
+      "Comp Code": "aaa-lib",
+      "DE Mgr/Owners": "gpr",
+      "Notified/Triage Alias": "q-aaa-dev",
+      "Permission": "Owner",
+      "CDETS Name": "aaa-lib",
+      "Comp Name": "aaa/lib",
+      "Sanity Name": "enxr_sanity",
+      "CDETS Keywd": "aaa"
+   },
+   {
+      "Comp Code": "aaa-lib",
+      "DE Mgr/Owners": "larajago",
+      "Notified/Triage Alias": "q-aaa-dev",
+      "Permission": "Owner",
+      "CDETS Name": "aaa-lib",
+      "Comp Name": "aaa/lib",
+      "Sanity Name": "enxr_sanity",
+      "CDETS Keywd": "aaa"
+   }
+]
+
+Thanks,
+Ray
+
+
+From: Soma Edunuri (soma) 
+Sent: Tuesday, July 12, 2016 3:29 PM
+To: pims-dev(mailer list) <pims-dev@cisco.com>
+Subject: How Do I interpret this data
+
+Hi Ray,
+
+I used “pims gsr -r comp_info” command ti get component data and seeing multiple lines.
+
+pims gsr -r comp_info -comp_name aaa/lib
+Comp Name       Comp Code       CDETS Name      Notified/Triage Alias   Permission      DE Mgr/Owners   Sanity Name     CDETS Keywd
+aaa/lib aaa-lib aaa-lib q-aaa-dev       DE MGR  rshree  enxr_sanity     aaa
+aaa/lib aaa-lib aaa-lib q-aaa-dev       Owner   gpr     enxr_sanity     aaa
+aaa/lib aaa-lib aaa-lib q-aaa-dev       Owner   larajago        enxr_sanity     aaa
+
+For aaa/lib component, I am looking data like this for :
+
+Edit
+All/None
+Component Name	Component Code	CDETS Component	DE Manager	Category	Sanity Name	Function	Addl Platform Builds	Active	Triage Alias	Retired	Regression Suite	Last Modified Date	Last Modified By	Create Date
+	aaa/lib	aaa-lib	aaa-lib	rshree	PI-Infra	enxr_sanity	 	 	yes	q-aaa-dev	no	 	Tue May 17 21:41:55 2016	cmanur	Fri Oct 13 09:38:35 2000
+ 
+In the comp_info command, Can I specify the fields I need or use json format?
+What I need is,
+ACMe Comp Name
+DE-Mgr           
+CDETS Comp name 
+
+Need this info 115 Comps. Hence looking for CLI option.
+-Soma
+
+

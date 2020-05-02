@@ -1,0 +1,55 @@
+
+ /auto/ioxws1/pims/pacummin/pims-ws/pims/perlmod-ext/housekeeping/expired_tcr_rejection/tcr_reject.py --days 30
+
+
+setenv PIMS_DISABLE_PRRQ_TRIG 1
+acme pull -dl default.lu -sb pims
+acme pull -dl default.lu -sb ebi_prime
+
+
+PCR Re-submission : /users/bobbyk/share/bin/resubmit_pcr pcrlist
+Dialin Info:
+	1-800-800-1180   Press 1 
+	Enter :	73648		(MP Extension)
+	Enter : 6132702337	(MP Dial-in number)
+--------------------------------------------------------------------------------
+EFR Release :
+-------------
+	Logs	   : /auto/enabuild/release_data/logs/jire_handler.log-00xxxxx
+	Build log  : /auto/enabuild/release_err/00xxxxx
+	Build WS   : /auto/ioxws23/r32x/ 
+		
+
+Safe Commit :
+-------------
+Job IDs	: /vws/srx/safe_commit_ci/queue/<bundle_id>/logs/*jid
+Summary	: /vws/srx/safe_commit_ci/queue/<bundle_id>/sanity_test.info
+
+
+Production Builds:
+------------------
+	Build Partition		: /vws/afz/production, 
+				  /vws/srz/dwperon/production, 
+				  /vws/vud/production, /vws/afu/production 
+	Image Archive Partition	: /vws/vqx/archive/bin/
+	Sym Archive Partition	: /vws/vqx/archive/sym/
+	workspace archive	: /auto/storage8/IOX/production_workspace_archive/
+	tftpboot location	: /auto/tftpboot-projects/enabuilds/production/
+
+Nightly Builds:
+---------------
+	Build Partition		: /vws/pcu/builds/nightly/
+
+------------------------------backup Info:--------------------------------------
+
+Old Build partition	: /vws/afu/production
+--------------------------------Commands------------------------------------
+
+acme ct lsvtree <filename>
+
+http://pims-web.cisco.com/pims-home/cgi-bin/pims_nav.cgi?Option=CompRpt
+
+/users/conger/script/ddtscomp <comp>
+
+http://pims-web.cisco.com/pims-home/cgi-bin/pims_nav.cgi?Option=massDT
+

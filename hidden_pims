@@ -1,0 +1,48 @@
+-------------------------PIMS hidden Commands--------------------------------------
+
+pims ri -from EFR-00000029665 -to EFR-00000029806 -lineup r32x -commit -ddts -group EFR
+
+pims rr -to_lineup smu_r35x_3_5_3 -datafile /tmp/pcr.CSCsl50143 -smu_name hfr-base-3.5.3.CSCsl50143
+ 
+
+
+Useful PIMS Commands
+====================
+
+Path : /usr/cisco/packages/pims/current/scripts/re-q
+
+1.  /usr/cisco/packages/pims/current/scripts/rejectreq
+    Rejects an EFR
+
+    usage : rejectreq <status> <reason> <efr_id1> [efr_id2 ...]
+        Example ./rejectreq [1-5] 'Some reason' 1234 1235
+            1 -> build failure
+            2 -> test failure
+            3 -> unresolved dependency timeout
+            4 -> operator rejection
+            5 -> illegal refpoint downgrade
+
+    Example :
+        wanena1:32> rejectreq 4 '4 PCRs for 3 lineups inadvertently approved together in 1 EFR' 24999
+
+        where 24999 is the JIRE number (without two leading zeroes)
+
+2.  /usr/cisco/packages/pims/current/scripts/re-q
+    Requeues an EFR
+
+    usage : /users/songtao/re-q <efr_id>
+
+    Example :
+        wanena1:32> /users/songtao/re-q 0024999
+
+        where 0024999 is the EFR number (with two leading zeroes ie 7 digits)
+
+3). Accept Rejected EFRs.
+
+There is a backdoor that only release managers can use to release an EFR even though testing has failed.
+
+/usr/cisco/packages/pims/current/scripts/acceptreq <efr_id1> [efr_id2...]
+
+e.g. /usr/cisco/packages/pims/current/scripts/acceptreq 12345 34456 45654 
+
+

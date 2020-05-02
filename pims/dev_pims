@@ -1,0 +1,78 @@
+Pending
+
+- No add/modify required in PCR???			- Dan
+
+- Hiding Accept option during PCR approval		- Louie
+
+- Info Required Option for TCR approval			- Dan
+
+- ISSU Requirement Study/Estimates			- Dan
+
+- DDTS Loader Script issue 				- Louie
+
+- CDETS migration scoping and work			- Sergiu
+
+- CLI Command for Documentation Group			- Dan
+
+- PSIRT Flag in SMU portal				- Sergiu
+
+- Lineup/Component Retirement utility 
+
+- Reduction in Number of entries in Latest/Search Builds screen 
+
+- In Package General Info report, display only External Production Builds
+  so that data is displayed when a label is selected.
+
+- In "View Lineup Versions" screen, the delta between From and To should 
+  4 weeks or a month. One week is too short.
+
+- SMUs to be organized in sub directories. This involves PIMS and SMU Tool 
+  work
+
+- SMU README updation using Web Interface.
+
+- While Displaying contents in Throttle List, Commiy count should only Display
+  number related commits to that branch
+
+------------------------------------------------------------------------------
+In progress
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+Completed List
+------------------------------------------------------------------------------
+
+ 1. Root Cause Anakysis of EFR failures and Fix 		(Louie)
+
+ 2. Integrated-releases field updation  			(Dan)  
+
+???	- Skip CSCdz44423 & CSCeb28342 from Integrated-releases field updation
+	- Skipping Tools package update for Projects (.acme_project)
+	- Updating only Base package for Compatability ddts  ???
+
+ 3. Display Component owner when commit is denied because access (Dan)
+
+ 4. Pending Throttle Commits/Releases				(Louie)
+
+	- Add a hyper Link to the ddts 
+	- Dispaly Severity and Headline
+
+ 5. DE and DT Engineer addition to PIMS automatically  		(Sergiu)
+
+ 6. Shorter list of Lineups in View Release Queue	 	(Sergiu)
+
+ 7. Production Build Backend and any other pending issues 	(Dan)
+
+ 8. Source Archive Completion of CCO posted Releases 		(Dan)
+
+?? 9. Unrelease Ref points and Components 			(Dan)
+	- Combining Unreleased Ref points and Comps report  	
+	- Accept branch name along with lineup name
+
+??10. Pending SMU Commits into throttle report			(Sergiu)
+	- Addition Hyper Link to SMU
+	- Filter using Integrated-releases field 
+
+11. Different TCR message for different Releases  		(Sergiu)
+ 
+

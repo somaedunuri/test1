@@ -1,0 +1,5 @@
+pims ri -from EFR-00000029995 -to EFR-00000030156 -lineup r32x -ddts -group EFR | grep CSC | sort -u
+
+pims ri -from EFR-00000029665 -to EFR-00000029806 -lineup r32x -commit -ddts -group EFR
+
+

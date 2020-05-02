@@ -1,0 +1,9 @@
+
+/usr/cisco/bin/pims release_request –datafile  /tmp/acme_proj_rebase  -to_lineup "gcc47-dev3"  -comment "ACME project rebase to xr-dev EFR-00000327918” -autorel_pcr -no_jire  -noprompt
+
+
+pims rr –datafile tt1 -to_lineup gcc47-dev3 -autorel_pcr -no_jire -noprompt
+
+pims rr -to_lineup gcc47-dev3 -autorel_pcr -no_jire -noprompt -datafile tt1
+
+

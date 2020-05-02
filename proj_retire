@@ -1,0 +1,28 @@
+
+
+
+/auto/pims-loader/PIMS/pims_loader_scripts/retire_projects.pl -file <file with lineups to retire>
+
+
+
+Hi Soma,
+For the retirement of lineups, the exception list is located : ‘auto/pims-loader/PIMS/inactive_lineups/inactive_lineups.data'.
+
+The script itself is located at /auto/pims-loader/PIMS/pims_loader_scripts/retire_projects.pl
+
+It can be called as follows:
+/auto/pims-loader/PIMS/pims_loader_scripts [167] %retire_projects.pl
+Passing a file argument (--file|f) is needed to invoke this script!
+==============================================================================================================
+This CLI is invoked with retire_projects.pl -file /this/is/example/file.txt
+The retirement file should include 1 lineup/project per line that the user wishes to retire.
+The CLI will iterate through the lineups/projects in this file, and attempt to retire the projects one by one.
+It'll retire what was not filtered by an exclusion list, it'll check required permissions
+to retire a project/lineup are present. It'll check for any dependencies that hinder the
+retirement. If none, the project and any associated throttle lists/branches will be retired
+along with any ACME dependencies. The appropriate parties will also be notified.
+
+Thanks,
+Ray
+
+
