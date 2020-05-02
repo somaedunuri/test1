@@ -1,0 +1,16 @@
+
+/auto/wwwin-release_relops/XR_COMMIT_THROTTLE_LISTS
+
+Install sanity Scripts :
+
+SMU Build scripts
+/auto/iox/contrib/bin/BuildCalSMUs2
+/auto/iox/contrib/bin/buildXRSMUs
+
+links :
+https://wiki.cisco.com/display/SPIRITTEST/NG%20Install%20Sanity
+https://wiki.cisco.com/display/INSTALLDT/Pre-Commit+Sanity+Guide
+
+
+
+

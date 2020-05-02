@@ -1,0 +1,317 @@
+Commands :
+
+/ws/ealyon-sjc/defect-tracking/xr_warnings -log <log1,log2,....> -type gcc
+
+/ws/ealyon-sjc/defect-tracking/xr_warnings_html -report <.rpt from last command> -output /auto/web-xrops/prod/htdocs/warnings/gcc/baseline/<html-name>.html
+
+Custom script : /auto/ioxprojects1/jwu/GCC_for_soma/xr_warnings_html
+
+/auto/ioxprojects1/jwu/GCC_for_soma/xr_warnings_html -reeport <.rpt> -output /auto/web-xrops/prod/htdocs/warnings/gcc/baseline/<html-name>.html
+
+/ws/ealyon-sjc/defect-tracking/xr_warnings -log xr_bld.asr9k-px.log -type gcc
+/ws/ealyon-sjc/defect-tracking/xr_warnings_html -report gcc:soma_xr-dev-328253.rpt -output /auto/web-xrops/prod/htdocs/warnings/gcc/baseline/soma_gcc47-dev.html
+
+
+
+/auto/iox/bin/xr_gcc_warn -log <logs> - o <.html fie>
+
+From: Jessie C.L. Wu (jwu) 
+Sent: Friday, October 09, 2015 5:21 PM
+To: Soma Edunuri (soma) <soma@cisco.com>
+Cc: csgrelops-xr(mailer list) <csgrelops-xr@cisco.com>; Leo Berdi (leoberdi) <leoberdi@cisco.com>; Juliana Cooke (jccooke) <jccooke@cisco.com>
+Subject: Re: GCC47 Warnimgs list by component report and ddts creation
+
+Hi Soma,
+
+Sorry for the typo, the option should be -output. However, I suggested to give -link and -label  a try as the label may show up in the html on the top. It is showing Label: Workspace, which may not be what you want. 
+
+Say if you give -label <your_EFR> -link http://wwwin-xrops.cisco.com/warnings/gcc/baseline/soma_gcc47-dev.html, I am not sure whether the script will figure out the htdocs root of this link is or not and save the .html in the right area.
+
+Ed can help with.
+
+Thanks,
+Jessie
+
+From: "Soma Edunuri (soma)" <soma@cisco.com>
+Date: Friday, October 9, 2015 at 4:46 PM
+To: Jessie wu <jwu@cisco.com>
+Cc: "csgrelops-xr(mailer list)" <csgrelops-xr@cisco.com>, "Leo Berdi (leoberdi)" <leoberdi@cisco.com>, "Leo Berdi (leoberdi)" <leoberdi@cisco.com>, "Juliana Cooke (jccooke)" <jccooke@cisco.com>
+Subject: RE: GCC47 Warnimgs list by component report and ddts creation
+
+Hi Jessie,
+ 
+The fist command worked successfully. I gave following command and it came back good.
+ 
+/ws/ealyon-sjc/defect-tracking/xr_warnings -log xr_bld.asr9k-px.log-1,xr_bld.asr9k-px.log -type gcc
+ 
+When I entered, second command, getting following error :
+ 
+/ws/ealyon-sjc/defect-tracking/xr_warnings_html -report gcc:soma_gcc47-dev.rpt -html /auto/web-xrops/prod/htdocs/warnings/gcc/baseline/soma_gcc47-dev.html
+Unknown option: html
+ 
+Usage: xr_warnings_html -output <OUTFILE> -report <RPTFILE>
+                 [-label <LABEL>][-link <HREF>][-type <TYPE>][-icc]
+                 [-version <VERSION>][-suffix <SUFFIX>]
+       
+        -output:        specifies a path to the html file to be created.
+                        Note that a mgr_`basename <OUTFILE>` subdirectory
+                        will be created in `dirname <OUTFILE>`
+                        and used to store mgr-specific files.
+                        Required field.
+ 
+        -report:        specifies a path to the input report file.
+                        It is typically created by xr_warnings.                
+                        Required field.
+ 
+        -label:         specifies Nightly Build warnings.
+                        Default is Workspace.
+ 
+        -link:          specifies the URL for <OUTPUT>.
+                        Required if -label is specified.
+ 
+        -type:          identifies the type of warning: build gcc icc sa.
+                        Default is gcc.
+ 
+        -icc:           is equivalent to -type icc.
+ 
+        -version:       specifies a Build Version, if necessary.
+                        Format is X.Y[.Z]
+ 
+        -suffix:        specifies an attribute suffix, if necessary.
+                        Default is WARN.
+                        The attribute has form <X>_<Y>[_<Z>]_<TYPE>_<SUFFIX>
+ 
+“-html” option accepted. Should I try some other option.
+After this command is successful, what will e the path of web link?
+ 
+-Soma
+ 
+ 
+From: Jessie C.L. Wu (jwu) 
+Sent: Thursday, October 08, 2015 5:58 PM
+To: Soma Edunuri (soma) <soma@cisco.com>
+Cc: csgrelops-xr(mailer list) <csgrelops-xr@cisco.com>; Leo Berdi (leoberdi) <leoberdi@cisco.com>; Leo Berdi (leoberdi) <leoberdi@cisco.com>; Juliana Cooke (jccooke) <jccooke@cisco.com>
+Subject: Re: GCC47 Warnimgs list by component report and ddts creation
+ 
+Hi Soma,
+ 
+Here are the two commands I ran yesterday:
+$ /ws/ealyon-sjc/defect-tracking/xr_warnings -log xr_bld.asr9k-px.log-2,xr_bld.asr9k-px.log,xr_bld.hfr-px.log-1,xr_bld.ncs6k.log,xr_bld.asr9k-px.log-1,xr_bld.hfr-px.log,xr_bld.ncs4k.log,xr_bld.xrvr.log -type gcc
+-This above will generate a report file named gcc:soma_gcc47-dev.rpt
+$ /ws/ealyon-sjc/defect-tracking/xr_warnings_html -report gcc:soma_gcc47-dev.rpt -html /auto/web-xrops/prod/htdocs/warnings/gcc/baseline/soma_gcc47-dev.html
+ 
+Ed can suggest whether I am missing any options or not.
+ 
+Thanks,
+Jessie
+ 
+From: "Soma Edunuri (soma)" <soma@cisco.com>
+Date: Thursday, October 8, 2015 at 5:36 PM
+To: Ed Lyon <ealyon@cisco.com>, Jessie wu <jwu@cisco.com>, "Juliana Cooke (jccooke)" <jccooke@cisco.com>
+Cc: "csgrelops-xr(mailer list)" <csgrelops-xr@cisco.com>, "Leo Berdi (leoberdi)" <leoberdi@cisco.com>
+Subject: RE: GCC47 Warnimgs list by component report and ddts creation
+ 
+Thanks Ed. Lot of info to digest.
+-Soma
+ 
+From: Ed Lyon (ealyon) 
+Sent: Thursday, October 08, 2015 11:59 AM
+To: Soma Edunuri (soma) <soma@cisco.com>; Jessie C.L. Wu (jwu) <jwu@cisco.com>; Juliana Cooke (jccooke) <jccooke@cisco.com>
+Cc: csgrelops-xr(mailer list) <csgrelops-xr@cisco.com>; Leo Berdi (leoberdi) <leoberdi@cisco.com>
+Subject: RE: GCC47 Warnimgs list by component report and ddts creation
+ 
+I’ll try to answer most of your questions, here, folks, but may have to tackle some of them off-line with Jessie:
+ 
+•	What type of warnings are included while preparing a warning list?
+                build, gcc, icc, and “other”.  Please see the Background description below for details.
+•	From log files, what does the script look for to identify a warning?
+                The word warning[s] in various known patterns.  Please see the Background and Patterns below for details.
+•	Is a workspace required?
+                Yes.  .ACMEROOT/ws.lu is read to create a component lookup table.
+•	Does the same platform in multiple log files matter?
+                No.  All warnings are noted and associated with the proper component and DE Manager, if possible.
+•	Does the order of the log files of the same platform matter?
+                No.  Warnings are warnings, regardless of the order or file in which they are found.
+•	Can one combine existing xr_bld log files?
+                Yes.  Use the Arbitrary logs mode by specifying options -log <file>,... [-output <file>]
+ 
+For more information, please see the Background section below.
+ 
+I’ll look at the warning in a bit, Jessie.
+ 
+- EAL
+ 
+ 
+Background
+ 
+Many years ago, during a push to eliminate IOS-XR build warnings, I modified two scripts:
+•	xr_gcc_warn
+•	xr_gcc_warn_html
+trying to generalize them so they could handle any and all warnings in the build logs.
+ 
+They are now called:
+•	xr_warnings
+•	xr_warnings_html
+and purport to handle the following warning types:
+•	build 
+•	gcc
+•	icc
+•	sa (predates Coverity, so none will be found)
+•	other (gets anything not recognized as one of the above)
+•	all (to select all of the above)
+•	skipped (an internal type for ignoring certain warnings and excluded components)
+ 
+xr_warnings has two modes of operation:
+•	Nightly Build logs, specified by options -lineup <lineup> [-label <label>]
+•	Arbitrary build logs, specified by options -log <file>,... [-output <file>]
+ 
+It looks at every line of every log, ignoring any that do not include the word “warning”, possibly plural, ignoring case.
+It uses regular expressions to extract information from the warning messages (generic descriptions of the Patterns used can be found below).
+Every recognized warning message is counted in a hierarchical structure:   $warnings{ $type } -> { $manager } -> { $component } -> { $warning }.
+The reports generated are ordered accordingly:
+      DEMGR: $manager $count
+      Component: $component $count
+        $warning
+ 
+xr_warnings_html takes reports in that format and produces:
+•	an HTML table of components by manager.
+•	files of the associated warnings linked to from the component.
+ 
+There is also a warnings script to facilitate Nightly Build mode:
+                warnings <type> … <devline> <version> <label> <suffix>
+It:
+                determines the latest <label> on the devline, if no <label> is specified.
+                runs “xr_warnings -lineup <devLine> -label <label> -type all”, reporting on all <type> values
+                for each <type> specified,
+                                runs “xr_warnings_html -report <type report> -type <type> -output <html> -label <label> -link <link> -version <version> -suffix <suffix>”,
+                                producing an HTML summary of the <type report>.
+ 
+Patterns
+ 
+# perl warnings are included in Build warnings and have the form <message> at <file> line <line>.
+ 
+# gcc warnings have the form <file>:<line>: warning: <message>
+# If the keyword “warning” is missing, the message is treated as a Build warning.
+ 
+# Some Other warnings have the form <file>:<line>: <message>
+ 
+# SA warnings have the form <file>:<line>:<message>
+ 
+# icc warnings have the form <file>(<line>): warning #<number>: <message>[ (declared at line <line>[ of "<file>"])]
+ 
+# Some jam (Build) warnings (there are lots) start with WARNING:
+            # Build warnings have several forms:
+            #       <WARNING>: <program>:<file>:line <number>:<message>
+            #       <WARNING>: [Component] <component> <message>
+            #       <WARNING>: <message1> (<component1>) <message2> (<component2>)
+            #       <WARNING>: <word> ... <word> <file>[ ... <file>]
+            #       <WARNING>: <word> ... <word> <file> <message>
+            #       <WARNING>: <word> ... <word> <file><terminator>
+            #       <WARNING>: <word> ... <word> <component>[ ... <component>]
+            #       <WARNING>: <word> ... <word> <component> <message>
+            #       <WARNING>: <word> ... <word> <component><terminator>
+            # [where no <message> is present, <word> ... <word> forms the <message>]
+# Others have form  <program> (Warning): Component "<component>" <message>
+# Or                <program> (Warning): <message> <file>
+# The loader warns: <program>: warning: <file>: <message>
+# Or                <program>: Warning: <message1> in <file1> <message2> in <file2>
+ 
+# Anything else, not recognized, is an Other warning
+ 
+From: Soma Edunuri (soma) 
+Sent: Thursday, October 08, 2015 9:33 AM
+Thanks Jessie. What type of warnings are included while preparing warning list?
+From log files, what does the script look for to identify a warning?
+ 
+From: Jessie C.L. Wu (jwu) 
+Sent: Thursday, October 08, 2015 9:03 AM
+Putting all the files in the /ws/soma-sjc/gcc47-dev directory will not work for the tool. In other words, it has to run from a workspace root. Therefore, I put all these log files in a jwu.gcc directory and ran the tool from there. It generated the following html:
+http://wwwin-xrops.cisco.com/warnings/gcc/baseline/soma_gcc47-dev.html
+ 
+Since we are talking about multiple log files now. Here are some questions I have for Ed and I may need to get answers from him offline:
+•	whether the same platform in multiple log files matter or not (We have xr_bld.*.log-2, xr_bld.*.log-1, xr_bld.*.log and I assume not as a component can be in multiple different platform)
+•	Whether the order of the log files of the same platform or not(I don’t know whether the warnings are grouped together or the very last one wins or what)
+Hope none of them matters but just want to be sure.
+ 
+From: "Soma Edunuri (soma)" <soma@cisco.com>
+Date: Wednesday, October 7, 2015 at 10:31 PM
+Thanks Jessie. This is the format/report I am looking for. xr_bld.asr9k-px.log is 2nd incremental
+Build log and has only few components compiled. xr_bld.asr9k-px.log-1 is first build logs.
+ 
+What I want is following :
+-          Combine all existing xr_bld log files
+-          Generate this report
+ 
+I copied all existing log files /ws/soma-sjc/gcc47-dev directory.
+ 
+-rw-r--r-- 1 soma eng 251036832 Oct  7 16:57 xr_bld.asr9k-px.log
+-rw-r--r-- 1 soma eng 879152844 Oct  7 16:57 xr_bld.asr9k-px.log-1
+-rw-r--r-- 1 soma eng  68082658 Oct  7 16:57 xr_bld.asr9k-px.log-2
+-rw-r--r-- 1 soma eng   7489720 Oct  7 16:56 xr_bld.hfr-px.log
+-rw-r--r-- 1 soma eng 822562695 Oct  7 16:56 xr_bld.hfr-px.log-1
+-rw-r--r-- 1 soma eng 240465359 Oct  7 22:28 xr_bld.ncs4k.log
+-rw-r--r-- 1 soma eng 427323134 Oct  7 16:57 xr_bld.ncs6k.log
+-rw-r--r-- 1 soma eng  18967608 Oct  7 16:56 xr_bld.xrvr.log
+ 
+This will cover more components.
+ 
+From: Jessie C.L. Wu (jwu) 
+Sent: Wednesday, October 07, 2015 9:29 PM
+While waiting for Ed’s wiki page or instructions about the usage of the two scripts, I Just tried the scripts and got something out from it.
+FYI, I used the xr_bld.asr9k-px.log file in /scratch/soma/gcc47-dev and it generated the following reprot/html:
+http://wwwin-xrops.cisco.com/warnings/gcc/baseline/soma_gcc47-dev.html
+ 
+Hope the above data is correct :-)
+ 
+Here is the very end of running the xr_warnings_html script:
+….
+….
+….
+Text report available at gcc:soma_gcc47-dev.rpt
+Use of uninitialized value in concatenation (.) or string at /ws/ealyon-sjc/defect-tracking/xr_warnings_html line 438.
+ 
+HTML report available at
+ 
+You need to fix the above issue. I can work offline with you for other issues.
+ 
+From: Jessie wu <jwu@cisco.com>
+Date: Wednesday, October 7, 2015 at 5:55 PM
+Cced Leo and Ed here.
+ 
+Just found out that Ed is actually the script owner of the script that you are talking about. This script is in his private area. My understanding is that folks in India uses his script to generate the warning report for other XR devlines. Therefore, we can try to use his script on this project and Ed will need to address the issues of the script.
+ 
+From: Jessie wu <jwu@cisco.com>
+Date: Wednesday, October 7, 2015 at 3:10 PM
+Please understand that I was not in GCC warnings area before :-) I was under the impression this whole things seem to transferred to India already.
+However, I will try to catch up with you what is involved there.
+ 
+FYI, I will be busy with xe318_dev sync and collapse starting this Friday.
+ 
+From "Soma Edunuri (soma)" <soma@cisco.com>
+Date: Wednesday, October 7, 2015 at 3:04 PM
+Thanks Juliana.
+ 
+Jessie, I have “sjck-gold-13/scratch/soma/gcc47-dev” workspace with builds.
+ 
+From: Juliana Cooke (jccooke) 
+Sent: Wednesday, October 07, 2015 11:04 AM
+I will ask Jessie to help with this.
+ 
+From: Soma Edunuri <soma@cisco.com>
+Date: Wednesday, October 7, 2015 at 9:15 AM
+GCC4.7 upgrade project is part of 6.1 POR. We have created gcc47-dev project 
+where gcc47 is enabled by default.
+ 
+We have a wiki page to run the builds using gcc47-dev project and applying patch
+And copy some files. With this, we can build some images successfully.
+ 
+What I need from you team is a Web page which shows per component Warnings.
+We used to have this script and it needs to used on gcc47-dev project.
+ 
+The next step will be creating ddts for each component where there new GCC$7 
+warnings.
+ 
+Please let m eknow who will be working on this report so that I can provide 
+More info. I have couple of workspaces where I have already done the builds 
+Which can be used to test the Web report creation.
+

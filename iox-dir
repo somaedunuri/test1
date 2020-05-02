@@ -1,0 +1,60 @@
+echo "iox-bld1:/scratch1"
+ls -l /auto/iox-bld1-scratch1
+echo "iox-bld1:/scratch2"
+ls -l /auto/iox-bld1-scratch2
+echo "----------------------------------------------"
+
+echo "iox-bld2:/scratch1"
+ls -l /auto/iox-bld2-scratch1
+echo "iox-bld2:/scratch2"
+ls -l /auto/iox-bld2-scratch2
+echo "----------------------------------------------"
+
+echo "iox-bld3:/scratch1"
+ls -l /auto/iox-bld3-scratch1
+echo "iox-bld3:/scratch2"
+ls -l /auto/iox-bld3-scratch2
+echo "----------------------------------------------"
+
+echo "iox-bld4:/scratch1"
+ls -l /auto/iox-bld4-scratch1
+echo "iox-bld4:/scratch2"
+ls -l /auto/iox-bld4-scratch2
+echo "----------------------------------------------"
+
+echo "iox-bld6:/scratch1"
+ls -l /auto/iox-bld5-scratch1
+echo "iox-bld6:/scratch2"
+ls -l /auto/iox-bld5-scratch2
+echo "----------------------------------------------"
+
+echo "iox-bld6:/scratch1"
+ls -l /auto/iox-bld6-scratch1
+echo "iox-bld6:/scratch2"
+ls -l /auto/iox-bld6-scratch2
+echo "----------------------------------------------"
+
+echo "iox-bld7:/scratch1"
+ls -l /auto/iox-bld7-scratch1
+echo "iox-bld7:/scratch2"
+ls -l /auto/iox-bld7-scratch2
+echo "----------------------------------------------"
+
+echo "iox-bld8:/scratch1"
+ls -l /auto/iox-bld8-scratch1
+echo "iox-bld8:/scratch2"
+ls -l /auto/iox-bld8-scratch2
+echo "----------------------------------------------"
+
+echo "iox-bld9:/scratch1"
+ls -l /auto/iox-bld9-scratch1
+echo "iox-bld9:/scratch2"
+ls -l /auto/iox-bld9-scratch2
+echo "----------------------------------------------"
+
+echo "iox-bld10:/scratch1"
+ls -l /auto/iox-bld10-scratch1
+echo "iox-bld10:/scratch2"
+ls -l /auto/iox-bld10-scratch2
+echo "----------------------------------------------"
+

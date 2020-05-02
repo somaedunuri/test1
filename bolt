@@ -1,0 +1,11 @@
+/auto/step-build/bolt_beta/bolt -help
+ /auto/step-build/bolt_beta/bolt -q
+/auto/step-build/bolt_beta/bolt -ls
+/auto/step-build/bolt_beta/bolt -ls xr@
+/auto/step-build/bolt_beta/bolt -ls xr@ci-520-bugfix.lu
+/auto/step-build/bolt_beta/bolt -nw xr@ci-520-bugfix.lu%CI-520-BUGFIX_NIGHTLY_13_11_23A
+/auto/step-build/bolt_beta/bolt -rm /bolt/xr/CI-520-BUGFIX_NIGHTLY_13_11_23A
+
+bolt nw xr@ci-512.lu%CI-512_NIGHTLY_13_11_07A 
+
+

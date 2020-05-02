@@ -1,0 +1,21 @@
+
+ssh pol-bld-lnx-208
+setenv PATH /auto/binos-tools/bin:$PATH 
+
+mkdir pol_binos ;  cd pol_binos
+acme nw -sb xe -proj polaris_dev
+setenv BINOS_ROOT /scratch/3/soma/pol_binos/binos
+
+cd ..
+start_task -v /vob/ios -t pol_iosd -b polaris_dev -a -d /scratch/3/soma
+start_task -v /vob/ios -t pol_iosd -l <LABEL> -a -d /scratch/3/soma
+ct setview soma-pol_iosd
+
+start_task -v /vob/ios -b pol_dev freezeview -t <14049> -a -d /scratch/3/soma
+ct setview soma-<14049>
+cd /vob/ios/sys
+
+nohup mcp_ios_precommit rp1_super >&! rp1.log1 &
+nohup mcp_ios_precommit -r /scratch/3/soma/pol_binos/binos rp2_super >&! rp2.log1 &
+
+-------------------------------------------------------------------------

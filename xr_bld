@@ -1,0 +1,832 @@
+#!/usr/cisco/bin/perl -w
+##############################################################################
+# $Header$:
+##############################################################################
+#
+#
+use Cwd;
+use Getopt::Long;
+use File::Basename;
+use POSIX qw(strftime);
+use Sys::Hostname;
+
+select STDERR; $|=1;
+select STDOUT; $|=1;
+
+my $my_script=basename($0);
+
+my $hostname=hostname();
+
+BEGIN {
+    # IOXTOOLS_BASE is the tools internally to ioxrelops folks
+    unless ( $ENV{'IOXTOOLS_BASE'} ) {
+        $IOXTOOLS_BASE=`cat /auto/mssbu-sw/.TOOLS_BASE`;
+        chomp($IOXTOOLS_BASE);
+    }
+    else {
+        $IOXTOOLS_BASE="$ENV{'IOXTOOLS_BASE'}";
+    }
+
+    # XRTOOLS_BASE is the tools externally to IOX community
+    # /auto/mssbu-swtools is owned by root; I cannot write to it. For now, we
+    # use /auto/mssbu-swtools/iox. Confusing :-(
+    unless ( $ENV{'XRTOOLS_BASE'} ) {
+        $XRTOOLS_BASE=`cat /auto/mssbu-swtools/iox/.XRTOOLS_BASE`;
+        chomp($XRTOOLS_BASE);
+    }
+    else {
+        $XRTOOLS_BASE="$ENV{'XRTOOLS_BASE'}";
+    }
+
+    require "$XRTOOLS_BASE/config/global.cfg";
+    require "$XRTOOLS_BASE/config/relops.cfg";
+    require "$XRTOOLS_BASE/lib/comlib.pl";
+}
+
+$JAM=$ENV{'MY_JAM'} if ( $ENV{'MY_JAM'} );
+
+
+#
+# Shall we put these in the global.cfg?
+my $EGREP="/router/bin/egrep";
+my $LJAM="/router/bin/ljam";
+
+# scripts needed
+my $install_crypto="$IOXTOOLS_BASE/iox/bin/install_crypto";
+
+# Initialize start_time
+my $start_time = time;
+my $bld_start_time;
+my $bld_start_epoch;
+my $ws_root=getcwd;
+my $me=getpwuid($>);
+my $my_debug=0;
+my $jam_cmd;
+my $msg;
+my $bld_err=0;
+my $logfile;
+my $latest_logfile;
+my $bld_issu_img="/auto/mssbu-swtools/iox/bin/bld_issu_img";
+
+my @c12k_images=(
+"c12k-mini.vm",
+#"c12k-mini.pie",
+"c12k-mcast.pie",
+"c12k-mpls.pie",
+"c12k-mgbl.pie",
+);
+my $c12k_pkg_pies="c12k-mcast.pie c12k-mpls.pie c12k-mgbl.pie";
+
+# First assign the old name
+my $hfr_mini_p_vm = "comp-hfr-mini.vm";
+my $asr9k_mini_p_vm = "comp-asr9k-mini.vm";
+my $asr9k_mini_px_vm = "asr9k-mini-px.vm";
+my $hfr_mini_px_vm = "comp-hfr-mini-px.vm";
+
+my $hfr_full_p_vm = "comp-hfr-full.vm";
+my $hfr_full_px_vm = "comp-hfr-full-px.vm";
+
+# No need to remove this block of code even after right file-name is used for
+# the asr9k is platform. 
+###### Begin block #######
+if(-e "platforms/viking/targets/images/asr9k-mini-p.pl"){
+    $asr9k_mini_p_vm  = "asr9k-mini-p.vm";
+}
+elsif (-e "platforms/viking/targets/images/comp-asr9k-mini.pl" ) {
+    my $comp_asr9k_mini_pl =
+    "platforms/viking/targets/images/comp-asr9k-mini.pl";
+    my($VAR1);
+    eval(`cat $comp_asr9k_mini_pl`);
+    die "Cannot determine the new name for asr9k platform, exiting..." if($@);
+    $asr9k_mini_p_vm = $VAR1->{'pdls'}->{'IMAGE_NAME'} . ".vm";
+}
+# Use the new image-name if the following file exists
+if(-e "platforms/hfr/targets/images/hfr-mini-p.pl"){
+    $hfr_mini_p_vm    = "hfr-mini-p.vm";
+    $hfr_mini_px_vm = "hfr-mini-px.vm";
+}   
+if(-e "platforms/hfr/targets/images/hfr-full-p.pl"){
+    $hfr_full_p_vm    = "hfr-full-p.vm";
+    $hfr_full_px_vm = "hfr-full-px.vm";
+}   
+####### End block##########
+my @hfr_images=(
+$hfr_mini_p_vm,
+#"comp-hfr-mini.pie",
+"hfr-mcast-p.pie",
+"hfr-mpls-p.pie",
+"hfr-mgbl-p.pie",
+);
+
+my @asr9k_images=(
+$asr9k_mini_p_vm,
+#"comp-asr9k-mini.pie",
+"asr9k-mcast-p.pie",
+"asr9k-mpls-p.pie",
+"asr9k-mgbl-p.pie",
+);
+
+my @asr9k_px_images=(
+$asr9k_mini_px_vm,
+"asr9k-mcast-px.pie",
+"asr9k-mpls-px.pie",
+"asr9k-mgbl-px.pie",
+);
+
+my @nx86_images=(
+$hfr_mini_px_vm,
+"hfr-mcast-px.pie",
+"hfr-mpls-px.pie",
+"hfr-mgbl-px.pie",
+);
+
+my $enxr_image="enxr-router.vm";
+
+my @piref_images=(
+'piref-spirit-full-x-64.vm',
+);
+
+my @panini_images=(
+'panini-mini-x.iso',
+);
+
+my $panini_full_image="panini-full-x.iso";
+
+my @calvados_images=(
+'kvm-calvados-stage/kvm-calvados.iso',
+'kvm-calvados-stage/kvm-calvados-ucs.iso',
+'kvm-calvados-stage/kvm-calvados-xboard.iso',
+'kvm-calvados-stage/kvm-install.iso',
+'kvm-calvados-stage/kvm-install-ucs.iso',
+'kvm-calvados-stage/kvm-install-xboard.iso',
+'kvm-calvados-stage/kvm-install-pxeboot-xboard.iso',
+'calvados/release/calvados-x86_64-sdk.tgz',
+'calvados/release/calvados-i686-sdk.tgz',
+);
+
+my $ppc_bin_images .= "iosxr-os.ppc.bin";
+$ppc_bin_images .= " iosxr-infra.ppc.bin";
+$ppc_bin_images .= " iosxr-fwding.ppc.bin";
+$ppc_bin_images .= " iosxr-routing.ppc.bin";
+$ppc_bin_images .= " iosxr-diags.ppc.bin";
+$ppc_bin_images .= " iosxr-mpls.ppc.bin";
+$ppc_bin_images .= " iosxr-mcast.ppc.bin";
+$ppc_bin_images .= " iosxr-mgbl.ppc.bin";
+$ppc_bin_images .= " iosxr-docs.ppc.bin";
+#$ppc_bin_images .= " iosxr-security.ppc.bin";
+$ppc_bin_images .= " iosxr-adv-video.ppc.bin";
+$ppc_bin_images .= " iosxr-service.ppc.bin";
+
+my $mips_bin_images .= "iosxr-os.4k.bin";
+$mips_bin_images .= " iosxr-infra.4k.bin";
+$mips_bin_images .= " iosxr-fwding.4k.bin";
+$mips_bin_images .= " iosxr-routing.4k.bin";
+$mips_bin_images .= " iosxr-diags.4k.bin";
+$mips_bin_images .= " iosxr-mpls.4k.bin";
+$mips_bin_images .= " iosxr-mcast.4k.bin";
+$mips_bin_images .= " iosxr-mgbl.4k.bin";
+$mips_bin_images .= " iosxr-docs.4k.bin";
+#$mips_bin_images .= " iosxr-security.4k.bin";
+$mips_bin_images .= " iosxr-adv-video.4k.bin";
+$mips_bin_images .= " iosxr-service.4k.bin";
+
+my $x86_bin_images .= "iosxr-os.x86e.bin";
+$x86_bin_images .= " iosxr-infra.x86e.bin";
+$x86_bin_images .= " iosxr-fwding.x86e.bin";
+$x86_bin_images .= " iosxr-routing.x86e.bin";
+$x86_bin_images .= " iosxr-diags.x86e.bin";
+$x86_bin_images .= " iosxr-mpls.x86e.bin";
+$x86_bin_images .= " iosxr-mcast.x86e.bin";
+$x86_bin_images .= " iosxr-mgbl.x86e.bin";
+$x86_bin_images .= " iosxr-docs.x86e.bin";
+#$x86_bin_images .= " iosxr-security.x86e.bin";
+$x86_bin_images .= " iosxr-service.x86e.bin";
+
+my $ppc_security_image="iosxr-security.ppc.bin";
+my $mips_security_image="iosxr-security.4k.bin";
+my $x86_security_image="iosxr-security.x86e.bin";
+
+my $is_tetris=0;
+
+my %platfrom_bld_done;
+
+sub Usage {
+$rc = shift;
+print <<U_EOF;
+
+    Build IOX core images
+
+    Usage: $my_script -plat <platform>
+        [-full]
+        [-jam_opt "jam_opts_you_want"]
+        [-ext <log_ext>]
+        [-clean]
+        [-linkify]
+        [-infra]
+        [-v2_bldarc [archive_location]]
+        [-to|mail_to <eMail ID>[, ... ]]
+        [-cc|mail_cc <eMail ID>[, ... ]]
+        [-mail_sub <mail_sub>]
+        [-show]
+        [-help]
+
+    -plat: the platform(s) you want; Acceptable values are
+        asr9k-p
+        asr9k-px
+        c12k
+        enxr
+        hfr-p
+        hfr-px: to build px images.
+        pibin
+        piref
+        panini
+        calvados
+    -full: add full image to the list of images where applicable.
+    -jam_opt: the options you want to pass to jam.
+    -ext: <log_ext> is anything you want to be appended to the logfile.
+        The log will be created by the script; therefore there is no need to
+        specify log.
+    -clean: run jam clean; default is not to run jam clean
+    -linkify: to force a linkify to run before the build
+    -infra: to build infra test pie as well
+    -v2_bldarc: build ISSU v2 images. If [archive_location] is specified, then
+        archive the v2 images to the location provided.
+    -to|mail_to: a comma-separated list of eMail IDs to receive mail on errors.
+        One can also specify the -mail_to option multiple times.
+        The person running the script is added to the mail list automatically.
+    -cc|mail_cc: a comma-separated list of eMail IDs to receive mail on errors.
+        One can also specify the -mail_cc option multiple times.
+    -mail_sub: the mail subject you want instead of default; default is
+               <platform build is done in <ws>
+    -show: to see what the tool does but not to build
+    -help: to get this help message
+    
+    This is a script for you to build IOX core images for a platform.
+    The core images are mini vm and mpls, mcast & mgbl pies only.
+    The -full option will also add full vm images.
+
+    If you want to build images other than the above, do not use this script.
+
+    Examples:
+
+    $my_script -plat c12k
+
+    $my_script -plat c12k -jam_opt "-dax"
+
+    $my_script -plat c12k,hfr-p Or
+    $my_script -plat c12k -plat hfr-p
+
+    $my_script -plat asr9k-p -jam_opt "-sCPP_BUILD_UCODE=1"
+
+    $my_script -plat asr9k-px
+
+    $my_script -plat hfr-px
+
+    $my_script -plat enxr
+
+    $my_script -plat pibin
+
+U_EOF
+
+exit $rc;
+}
+
+
+
+sub cln_ws () {
+
+    $jam_cmd="$JAM clean";
+    $logfile="${my_script}.clean.log.$$";
+    if ( $opt_show ) {
+        print "SHOW ONLY: will not run [$jam_cmd]\n";
+    }
+    else {
+        print "Cmd: $jam_cmd\n";
+        system("$jam_cmd >$logfile 2>&1");
+        if ( $? >> 8 ) {
+            die "ERROR: $jam_cmd\nLog in $logfile.\n";
+        }
+    }
+
+}
+
+
+
+
+sub decide_bld_targs () {
+
+    if ( $opt_full ) {
+        my @full_platforms=qw(hfr-p hfr-px panini);
+        unless ( grep /^$platform$/o, @full_platforms ) {
+            warn "WARNING: option -full is only valid for these platforms:",
+                  " @full_platforms\n";
+        }
+    }
+
+    if ( $platform eq "c12k" ) {
+        $build_targs=join " ", @c12k_images;
+    }
+    elsif ( $platform eq "hfr-p" ) {
+        $build_targs=join " ", @hfr_images;
+        $build_targs.=" $hfr_full_p_vm" if $opt_full;
+    }
+    elsif ( $platform eq "asr9k-p" ) {
+        $build_targs=join " ", @asr9k_images;
+    }
+    elsif ( $platform eq "asr9k-px" ) {
+        $build_targs=join " ", @asr9k_px_images;
+    }
+    elsif ( $platform eq "hfr-px" ) {
+        $build_targs=join " ", @nx86_images;
+        $build_targs.=" $hfr_full_px_vm" if $opt_full;
+    }
+    elsif ( $platform eq "enxr" ) {
+        $build_targs=$enxr_image;
+    }
+    elsif ( $platform eq "pibin" ) {
+        # install the crypto toolkit if possible per soma
+        print "INFO: Attempting to install crypto toolkit for you.\n" unless ( -f "crypto/toolkit/.ACME/component.info" );
+        `$install_crypto`;
+        if ( $? ) {
+            warn "WARNING: Failed to install crypto toolkit, will not build security binaries\n";
+        }
+        else {
+            $ppc_bin_images.=" $ppc_security_image";
+            $mips_bin_images.=" $mips_security_image";
+            $x86_bin_images.=" $x86_security_image";
+        }
+        $build_targs="$ppc_bin_images $mips_bin_images $x86_bin_images";
+    }
+    elsif ( $platform eq "piref" ) {
+        $build_targs=join " ", @piref_images;
+    }
+    elsif ( $platform eq "panini" ) {
+        $build_targs=join " ", @panini_images;
+        $build_targs.=" $panini_full_image" if $opt_full;
+    }
+    elsif ( $platform eq "calvados" ) {
+        $build_targs=join " ", @calvados_images;
+    }
+    else {
+        die "ERROR: $platform is not supported yet!\n";
+    }
+
+}
+
+
+
+
+sub bld_pibin () {
+
+    # We need to build 3 kinds of binaries
+    # Do we invoke 3 of them as jam ...; jam ...; or jam ....?
+    # if the last jam returns 0, then the system call will return 0?
+    # if yes, then we won't be able to track the build status
+
+    # for now, one by one then.
+    $jam_cmd="$JAM ${opt_jam_opts} $ppc_bin_images >$logfile 2>&1";
+
+    if ( $opt_show ) {
+        print "SHOW ONLY: will not run [$jam_cmd]\n";
+    }
+    else {
+        print "Build start : $bld_start_time\n";
+        print "$jam_cmd\n";
+        system($jam_cmd);
+        if ( $? >> 8  ) {
+            print "ERROR: $jam_cmd\n";
+            $bld_err=1;
+        }
+    }
+
+    $jam_cmd="$JAM ${opt_jam_opts} $mips_bin_images >>$logfile 2>&1";
+
+    if ( $opt_show ) {
+        print "SHOW ONLY: will not run [$jam_cmd]\n";
+    }
+    else {
+        print "Build start : $bld_start_time\n";
+        print "$jam_cmd\n";
+        system($jam_cmd);
+        if ( $? >> 8 ) {
+            print "ERROR: $jam_cmd\n";
+            $bld_err=1;
+        }
+    }
+
+    $jam_cmd="$JAM ${opt_jam_opts} $x86_bin_images >>$logfile 2>&1";
+
+    if ( $opt_show ) {
+        print "SHOW ONLY: will not run [$jam_cmd]\n";
+    }
+    else {
+        print "Build start : $bld_start_time\n";
+        print "$jam_cmd\n";
+        system($jam_cmd);
+        if ( $? >> 8  ) {
+            print "ERROR: $jam_cmd\n";
+            $bld_err=1;
+        }
+    }
+}
+
+
+
+
+
+sub bld_it () {
+
+    $bld_start_time = strftime "%a %b %e %H:%M:%S %Y", localtime;
+    $bld_start_epoch = time();
+
+    $logfile="${ws_root}/${my_script}.${platform}.log${opt_ext}";
+    $latest_logfile="${ws_root}/${my_script}.${platform}.log.latest";
+
+
+    if ( $opt_linkify && ! $opt_show ) {
+        my $last_linkify=".last_linkify";
+        print "Since -linkify option is on, removing $last_linkify";
+        unlink($last_linkify) if ( -f $last_linkify );
+    }
+
+    if ( $platform eq "c12k" ) {
+        if ( $is_tetris ) {
+            $jam_cmd="$JAM ${opt_jam_opts} $build_targs >$logfile 2>&1";
+        }
+        else {
+            $jam_cmd="$JAM bldc12kvm ${opt_jam_opts} c12k-mini.vm >$logfile 2>&1; $JAM bldc12kpie $c12k_pkg_pies >>$logfile 2>&1";
+        }
+    }
+    elsif ( $platform eq "hfr-px" ) {
+        $jam_cmd="$JAM ${opt_jam_opts} $build_targs >$logfile 2>&1";
+    }
+    elsif ( $platform eq "enxr" ) {
+        # This is the command recommended. Do we need j10?
+        $jam_cmd="$LJAM ${opt_jam_opts} -sPROJECT=router -j10 -r $build_targs >$logfile 2>&1";
+    }
+    elsif ( $platform eq "pibin" ) {
+        &bld_pibin;
+        return;
+    }
+    elsif ( $platform eq "piref" ) {
+        $jam_cmd="$JAM ${opt_jam_opts} -sPROCNTO_SPIRIT=y -sOPTIM_DISABLE=y -sALL_IMAGES=y $build_targs >$logfile 2>&1";
+    }
+    elsif ( $platform eq "panini" ) {
+        $jam_cmd="$JAM ${opt_jam_opts} -sPROCNTO_SPIRIT=y -sOPTIM_DISABLE=y $build_targs >$logfile 2>&1";
+    }
+    elsif ( $platform eq "calvados" ) {
+        $jam_cmd="./calvados/build/make-lib/xrmk sdk install-iso >$logfile 2>&1 ;";
+        $jam_cmd .= "./calvados/build/make-lib/xrmk sdk TARGET=i686 >>$logfile 2>&1";
+    }
+    else {
+        $jam_cmd="$JAM ${opt_jam_opts} $build_targs >$logfile 2>&1";
+    }
+
+    # Or shall we have all the infra_logic here?
+    if ( $opt_infra ) {
+        $infra_test_pie_name="";
+        $jam_infra_cmd="";
+        if ( $platform eq "hfr-p" ) {
+            $infra_test_pie_name="hfr-infra-test-p.pie";
+            $jam_infra_cmd="$JAM ${opt_jam_opts} $infra_test_pie_name >>$logfile 2>&1";
+        }
+        elsif ( $platform eq "c12k" ) {
+            $infra_test_pie_name="c12k-infra-test.pie";
+            $jam_infra_cmd = $is_tetris ? "$JAM ${opt_jam_opts} $infra_test_pie_name >>$logfile 2>&1" : "$JAM bldc12kpie ${opt_jam_opts} $infra_test_pie_name >>$logfile 2>&1";
+        }
+        elsif ( $platform eq "hfr-px" ) { 
+            $infra_test_pie_name="hfr-infra-test-px.pie";
+            $jam_infra_cmd="$JAM ${opt_jam_opts} $infra_test_pie_name >>$logfile 2>&1";
+        }
+    }
+
+    if ( $opt_show ) {
+        print "SHOW ONLY: will not run [$jam_cmd]\n";
+        print "SHOW ONLY: will not run [$jam_infra_cmd]\n" if ( $opt_infra );
+        return;
+    }
+
+    remove_calvados_stuff() if ( $platform eq "calvados" );
+
+    print "Build start : $bld_start_time\n";
+    print "$jam_cmd\n";
+    system($jam_cmd);
+    if ( $? >> 8  ) {
+        print "ERROR: $jam_cmd\n";
+        $bld_err=1;
+    }
+
+    if ( $jam_infra_cmd ) {
+        print "Continue to build infra test pie\n";
+        print "$jam_infra_cmd\n";
+        system($jam_infra_cmd);
+        if ( $? >> 8  ) {
+            print "ERROR: $jam_infra_cmd\n";
+            $bld_err=1;
+        }
+    }
+
+    unlink($latest_logfile) if ( readlink $latest_logfile );
+    symlink($logfile,$latest_logfile);
+
+}
+
+
+
+
+
+sub chk_bld_stat () {
+
+    my $this_bld_err;
+    $build_targs .= " $infra_test_pie_name" if ( $opt_infra );
+    # In my opinion, it is too much to print the information for pibin platform
+    $msg="\nTargets Attempted: $build_targs\n";
+    $msg.="Command: $jam_cmd\n\n" if ( $platform ne "pibin" );
+    $msg .= "$jam_infra_cmd\n\n" if ( $opt_infra );
+
+    # Check to see which image is missing
+    for my $img_loc ( split(/\s+/,$build_targs) ) {
+        if ( $is_tetris ) {
+            if ( $platform eq "c12k" ) {
+                $img_loc = "img-c12k/$img_loc";
+            }
+            elsif ( $platform =~ /hfr/ ) {
+                $img_loc = "img-hfr/$img_loc"
+            }
+            elsif ( $platform =~ /asr9k/ ) {
+                $img_loc = "img-asr9k/$img_loc"
+            }
+            elsif ( $platform eq "enxr" ) {
+                $img_loc = "$img_loc";
+            }
+            elsif ( $platform eq "pibin" ) {
+                my (undef,$arch,undef)=split(/\./,$img_loc);
+                $img_loc = "obj-${arch}/$img_loc";
+            }
+            elsif ( $platform =~ /piref/ ) {
+                $img_loc = "img-piref/$img_loc"
+            }
+            elsif ( $platform =~ /panini/ ) {
+                $img_loc = "img-panini/$img_loc"
+            }
+        }
+        else {
+            if ( $platform eq "c12k" ) {
+                if ( $img_loc eq "c12k-mini.vm" ) {
+                    $img_loc = "obj-4k-ppc/$img_loc" 
+                }
+                else {
+                    $img_loc = "obj-ppc-c12000/$img_loc" 
+                }
+            }
+            elsif ( $platform eq "hfr-p" ) {
+                $img_loc = "obj-ppc/$img_loc" 
+            }
+            elsif ( $platform eq "asr9k" ) {
+                $img_loc = "obj-ppc-asr9k/$img_loc" 
+            }
+            elsif ( $platform eq "enxr" ) {
+                $img_loc = "$img_loc";
+            }
+        }
+
+        if ( -f $img_loc ) {
+            # Get the modify time
+            (undef,undef,undef,undef,undef,undef,undef,undef,undef,$mftime,undef,undef) = stat _;
+             if ( $mftime >= $start_time ) {
+                 $msg .= "SUCCEED: $img_loc\n";
+                 next;
+             }
+            $msg .= "WARN: $img_loc(image older than build start time: $start_time)\n";
+            # We will consider it an error as we assume the image should be
+            # rebuilt
+            # JCW: 09/30/2009
+            # When it is a no change build, nothing needs to be updated.
+            # The time should be older and this should not be an error.
+            #$bld_err=1;
+        }
+        else {
+            $msg .= "ERROR: Missing $img_loc\n";
+            $bld_err=$this_bld_err=1;
+        } 
+    }
+
+    $msg .= "\nHost: $hostname\nBuild logs: $logfile($latest_logfile)\n";
+
+    # Check the logfile to see whether there any problem or not
+    if ( $this_bld_err ) {
+        if ( -f $logfile ) {
+            $failed_msg=`$EGREP -e "^\.\.\.failed" -e "don't know how to make" -e "ERROR: " -e "^Jam: Fatal Error" $logfile`;
+            if ( $failed_msg ) {
+                $msg .= $failed_msg;
+            }
+        }
+    }
+
+    $bld_status= ( $this_bld_err ) ? "- FAILURE" : "+ SUCCESS";
+
+    print "$bld_status: $platform build is done in $ws_root\n";
+    print "$msg\n";
+}
+
+
+
+
+
+sub send_bld_result () {
+
+    # always send the mail to yourself
+    @opt_mail_to = split /,/, join ',', @opt_mail_to;
+    @opt_mail_cc = split /,/, join ',', @opt_mail_cc;
+    unless ( grep { /(?:^|,)$me(?:,|$)/o } @opt_mail_to, @opt_mail_cc ) {
+        if ( @opt_mail_to ) { push @opt_mail_cc, $me }
+        else { push @opt_mail_to, $me }
+    }
+    my $opt_mail_to=join ',', @opt_mail_to;
+    my $opt_mail_cc=join ',', @opt_mail_cc if ( @opt_mail_cc );
+
+    my $mail_sub=$opt_mail_sub || "$bld_status: $platform build is done in $ws_root";
+
+    my $tmp_msg_file="${my_script}.mail.$$";
+    open ( MSG_FILE, ">$tmp_msg_file" ) || die "Cannot open [$tmp_msg_file]: $!\n";
+    print MSG_FILE $msg;
+    close (MSG_FILE);
+
+    # Now send the message
+    my $mail_cmd = "$send_mail_prog --to $opt_mail_to --from $me --subject '$mail_sub' --file $tmp_msg_file" ; 
+    $mail_cmd .= " --cc $opt_mail_cc" if ( $opt_mail_cc );
+    if ( $my_debug ) {
+        print "Since it is debug, will not run the folloiwng mail script.\n";
+        print "<$mail_cmd>\n";
+    }
+    else {
+        print "Sending mail ....\n";
+        `$mail_cmd`;
+    }
+
+}
+
+
+
+
+
+sub bld_time_info () {
+
+    my $bld_end_time = strftime "%a %b %e %H:%M:%S %Y", localtime;
+    my $bld_end_epoch = time();
+    my $epoch_diff = $bld_end_epoch - $bld_start_epoch;
+    my ($sec,$min,$hour);
+    $sec = $epoch_diff % 60;
+    $epoch_diff = ($epoch_diff - $sec) / 60;
+    $min = $epoch_diff % 60;
+    $epoch_diff = ($epoch_diff - $min) / 60;
+    $hour = $epoch_diff;
+    print "Build start time: $bld_start_time\n";
+    print "Build end time  : $bld_end_time\n";
+    print "Total time taken to build = $hour Hour(s):$min minutes(s):$sec seconds(s)\n";
+
+}
+
+
+
+
+sub bld_issu_v2 () {
+
+    return(warn "bld_issu_img not supported for $platform\n") if ($platform eq 'enxr' || $platform eq 'pibin');
+    return(warn "bld_issu_img not supported for releases prior to 4.0") unless ($is_tetris);
+
+    $bld_start_time = strftime "%a %b %e %H:%M:%S %Y", localtime;
+    $bld_start_epoch = time();
+
+    my $bld_plat = $platform;
+    $bld_plat =~ s/-p.*// if ($platform =~ /^hfr/);
+    $plat = $bld_plat;
+    $plat =~ s/-p.*// if ($platform =~ /^asr9k/);
+    $opt_v2 ||= "$ws_root/img-$plat";
+    my $bld_issu_cmd="$bld_issu_img -ws ${ws_root}_v2 -issu $opt_v2 -log $ws_root -plat $bld_plat";
+    my $bld_issu_log='bld_issu_img.log';
+    print "Building ISSU images by $bld_issu_cmd. Log in $bld_issu_log\n";
+    return(print "Show only. No ISSU V2 images built\n") if ($opt_show);
+    system("$bld_issu_cmd >$bld_issu_log 2>&1");    
+
+    bld_time_info();
+
+}
+
+
+
+
+sub remove_calvados_stuff () {
+
+    print "For the purpose of a clean build, we are removing\n";
+    for my $each_img ( @calvados_images ) {
+        if ( -f $each_img ) {
+            print "  $each_img\n";
+            unlink($each_img);
+        }
+    }
+}
+
+
+
+
+
+#############################################################################
+# main starts here.
+#############################################################################
+print "Cmd: $my_script @ARGV\n";
+
+# Record the call.
+system("$LOG_TOOL $my_script @ARGV");
+
+# Check options
+GetOptions(
+    "platform=s"   => \@platforms,
+    "full"         => \$opt_full,
+    "infra"        => \$opt_infra,
+    "jam_opt=s"    => \$opt_jam_opts,
+    "ext=s"        => \$opt_ext,
+    "clean"        => \$opt_clean,
+    "linkify"      => \$opt_linkify,
+    "to|mail_to=s" => \@opt_mail_to,
+    "cc|mail_cc=s" => \@opt_mail_cc,
+    "mail_sub=s"   => \$opt_mail_sub,
+    "v2_bldarc:s"   => \$opt_v2,
+    "show"         => \$opt_show,
+    "debug"        => \$my_debug,
+    "help"         => \$help,
+) or Usage(1);
+
+if ( @ARGV ) {
+    print "Unknown argument: @ARGV\n";
+    Usage(1);
+    }
+
+Usage(0) if $help;
+
+unless ( @platforms ) {
+    print "ERROR: a platform is required:\n";
+    Usage(9);
+}
+
+die "ERROR: You are not in a workspace root.\n" unless ( -d ".ACMEROOT" );
+
+$is_tetris=1 if ( -d "package_mdata/iosxr-os" );
+
+# jam clean if needed.
+cln_ws() if ( $opt_clean );
+
+$opt_ext||="";
+$opt_jam_opts||="";
+    
+my(@all_platforms) = split(/,/,join(',',@platforms));
+
+$my_ws_ver=&get_ws_ver($ws_root);
+print "My workspace version is : [$my_ws_ver]\n" if ( $my_ws_ver );
+for $platform ( @all_platforms ) {
+    if ( $platform eq "crs1" || $platform eq "hfr" ) {
+        print "WARNING: $platform is deprecated, please use hfr-p.\n";
+        $platform="hfr-p";
+    }
+    if ( $platform =~ /x86/ ) {
+        print "WARNING: $platform is deprecated, please use hfr-px.\n";
+        $platform="hfr-px";
+    }
+    
+    if ( $platform eq "asr9k" ) {
+        print "WARNING: $platform is deprecated, please use asr9k-p.\n";
+        $platform="asr9k-p";
+    }
+    
+    if ( $my_ws_ver && $my_ws_ver lt "4.2" &&  grep {$platform eq $_} qw(asr9k-px piref panini) ) {
+        warn "SKIPPED: $platform platform is only supported in 4.2 and up\n";
+        next;
+    }
+ 
+    if ( ! $is_tetris && $platform eq "hfr-px" ) {
+        warn "SKIPPED: $platform platform is only supported in tetris and up.\n";
+        next;
+    }
+
+    # if the platform has been built, we do not want to build it again.
+    next if ( exists $platform_bld_done{$platform} );
+
+    decide_bld_targs();
+    
+    bld_it();
+    
+    $platform_bld_done{$platform}=1;
+
+    # Do the math to get total build time
+    bld_time_info();
+    
+    bld_issu_v2() if (defined($opt_v2));
+    
+    # Show the build status
+    unless ( $opt_show ) {
+        chk_bld_stat();
+        send_bld_result() if ( @opt_mail_to );
+    }
+}
+
+exit 9 if ( $bld_err );

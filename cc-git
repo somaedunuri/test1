@@ -1,0 +1,36 @@
+#Creating a ClearCase view 
+mkview -i montalvo -v /vobs/mars -s /ws/soma-sjc
+ls /view/soma-montalvo/vobs/mars
+
+#Initialize local git repo
+
+cd /ws/soma-sjc/GIT
+mkdir mars.git ; cd mars.git
+git init .
+
+# Clone git repo and copy CC tools files into git repo
+cd ..
+git clone /ws/soma-sjc/GIT/mars.git  mars
+cp -r /view/soma-montalvo/vobs/mars/* mars
+
+#cd /view/soma-montalvo/vobs/mars
+#cp -r . /ws/soma-sjc/mars/
+
+#Commit the files into local git repo
+cd /ws/soma-sjc/GIT/mars
+git add `find *`
+git checkout -b montalvo
+git commit -am 'Initial commit to the new git repo'
+
+# Creating new git clone to wotk
+# cd /ws/soma-sjc
+git clone /ws/soma-sjc/mars.git  mars
+git checkout montalvo
+cd mars
+
+
+cd /ws/soma-sjc
+git clone /ws/soma-sjc/GIT/mars.git   mars_local
+git checkout montalvo
+cd mars_local
+

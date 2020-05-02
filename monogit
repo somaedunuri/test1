@@ -1,0 +1,12 @@
+
+commands :
+
+git clone https://dscm.cisco.com/git/137/comp-13707184.git
+git checkout main/606
+
+git log --decorate
+
+acme describe -brief -fmt json
+
+acme list -comp xr_git_proto@main/592
+

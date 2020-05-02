@@ -1,0 +1,21 @@
+ 
+URLs : 
+	http://wwwin-lds.cisco.com/cgi/main.cgi?tab=LDS%20Manager
+	http://wwwin-lds.cisco.com/cgi/main.cgi?tab=Request+LDS
+	http://lds.gforge.cisco.com/twiki/prod/bin/view/Lds/WebHome
+
+
+CC Region Script : 
+
+	/users/bholgate/cmd/slots-used-by-site | grep rtg
+
+
+CC Regions : sjc-sprtg-unix     
+	     sjc-sprtg2-unix
+	     sjc-rtg-unix
+	     blr-rtg-unix
+	     rch-rtg-unix
+	     rtp-rtg-unix
+	     bxb-bemr1-unix	
+	     bxb-bemr2-unix 		
+	     bxb-bemr3-unix 

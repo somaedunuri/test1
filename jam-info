@@ -1,0 +1,54 @@
+#tools/jam/linkify -f -a ppc
+tools/jam/linkify -f -a x86_64-linux-spirit -plat xrv9k
+tools/jam/linkify -f -a ppc-nto -plat asr9k-px
+tools/jam/linkify -f -a ix86e-nto -plat hfr-px
+util/bin/ios-ng-mkcscope
+/auto/iox/bin/xr_my_ws_efr 
+ 
+csh : >& <output file>		ex : >& /dev/null
+bsh : > <output file> 2>&1	ex : > /dev/null 2>&1
+
+setenv JAM_NO_AUTO_FBE 1
+setenv SWIMS_SKIP_TICKET_CHECK ENV 1
+
+
+Jam log : /auto/iox_log1/jam/jam_bld_stat_log
+
+setenv JAM_WS_DIR /auto/sw/packages/jam_IOX/4.3.0
+setenv SMU_LIB_DIR /ws/seadams-sjc/smu_700/tools/smu/lib 
+setenv SMU_LIB_DIR /ws/seadams-sjc/spirit-smu/tools/smu/lib 
+setenv ACME_PROCESS_PATH /users/dwperon/trigger-ws/.acme_process/triggers
+setenv JAM_ADMIN_JFACTOR 1
+setenv ACME_DISABLE_TRIGS api_checker
+
+setenv ACME_DISABLE_TRIGS api_checker
+
+#grep "Thu " xr_bld*log | grep -v "00th" | sed /"% done,"/d
+#grep "Wed " xr_bld*ncs5500*log-1 | grep -v "00th" | sed /"% done,"/d | sed /x86_64-wrs-linux-gcc/d | sed /Netstack:/d
+grep "Wed " xr_bld*ncs5500*log-1 | grep -v "00th" | sed /"% done,"/d | sed /x86_64-wrs-linux-gcc/d | sed /Netstack:/d | sed /python_tree/d
+
+find */instance -name "*.pl" | xargs grep IMAGE_FAMILY
+
+#To find consumers
+find -name "*.consumers.pdl" | xargs grep platforms__viking__lc__prm__uidb__api
+
+compmgmt/pie/obj-x86-linux/pie -q -a -d <pie-name> 
+
+JAM_GET_COMPONENT_LIST_SLOW 
+
+/auto/mssbu-swtools/iox/bin/run_nightly_test
+
+/usr/bin/script 
+
+my_script | & tee logfile
+my_script >&! logfile  &
+
+Nightly build Script 	: /ws/alsheu/UTIL/build_sanity/hfr_nightly.sh
+Creating build.tar 	: /ws/alsheu/UTIL/save_build_binaries
+Extracting tar files	: tar -xvf <build.tar>
+
+acme branch_create -base_version ws -branch ci-41-bugfix -comp <component>
+
+/usr/bin is provided by the operating system.  
+/usr/cisco/bin is provided by Cisco IT
+/router/bin is provided by STEP. /router/bin is mostly links into /sw/packages

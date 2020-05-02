@@ -1,0 +1,14 @@
+			Safe Commit Info
+
+find bu*/ch* -follow -name component.audit | xargs grep "BUGID =" | sort
+
+find bu*/ch* | sort; grep -v cucu id*; grep -v cucu bu*/status
+
+
+/vws/srx/safe_commit_ci/queue/<bundle_id>/logs/*jid
+
+/vws/srx/safe_commit_ci/queue/<bundle_id>/sanity_test.info
+
+grep -v cucu id*; find bu*/ch*
+
+

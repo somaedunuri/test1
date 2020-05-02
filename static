@@ -1,0 +1,10 @@
+
+
+/auto/jam_IOX/production/server-load-1
+
+cstatic_changeset -comp platforms/hfr/chassis-control/lrd/inventory -delta fwd-33 -j 8 -h
+
+%setenv TIMING_DEBUG YES
+
+
+

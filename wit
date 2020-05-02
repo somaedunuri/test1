@@ -1,0 +1,24 @@
+1. Branch Create 
+# wit branch list -team iosxr
+# wit branch delete -branch xr_dev_wit
+wit branch create -branch xr_dev_wit -team iosxr -plugin wit.plugins.diskimage -min_size 512000 -size 5000000
+
+2. Branch Attach
+wit branch attach -branch xr_dev_wit –team iosxr
+
+3. Populate data into branmch created above
+	cd /witspace/soma/branch_soma_xr_dev_wit
+	mkdir ncs1k_cnp
+	acme nw -dl xr-dev.lu -plat ncs1k
+	tools/misc/xr_bld -plat ncs1k
+
+4. Create snapshot
+# wit snapshot list -team iosxr
+# wit snapshot delete -snapshot <snapshot-name> -team iosxr
+wit snapshot create -snapshot ncs1k_cnp_snap -branch xr_dev_wit -team iosxr
+
+5. Create space
+# wit space list -team iosxr
+# wit space delete -space <space_name> -team iosxr
+wit space create -snapshot ncs1k_cnp_snap -branch xr_dev_wit -team iosxr -space ncs1k_cnp_space
+

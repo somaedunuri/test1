@@ -1,0 +1,5 @@
+
+Git Credential Setup and Check
+
+/usr/cisco/packages/acme/2.2.0/bin/acme config_check -checks credential_info
+

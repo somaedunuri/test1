@@ -1,0 +1,30 @@
+echo "iox-bld1"
+ls -l /auto/iox-bld1-scratch1/EFR
+echo "----------------------------------------------"
+echo "iox-bld2"
+ls -l /auto/iox-bld2-scratch1/EFR
+echo "----------------------------------------------"
+echo "iox-bld3"
+ls -l /auto/iox-bld3-scratch1/EFR
+echo "----------------------------------------------"
+echo "iox-bld4"
+ls -l /auto/iox-bld4-scratch1/EFR
+echo "----------------------------------------------"
+echo "iox-bld5"
+ls -l /auto/iox-bld5-scratch1/EFR
+echo "----------------------------------------------"
+echo "iox-bld6"
+ls -l /auto/iox-bld6-scratch1/EFR
+echo "----------------------------------------------"
+echo "iox-bld7"
+ls -l /auto/iox-bld7-scratch1/EFR
+echo "----------------------------------------------"
+echo "iox-bld8"
+ls -l /auto/iox-bld8-scratch1/EFR
+echo "----------------------------------------------"
+echo "iox-bld9"
+ls -l /auto/iox-bld9-scratch1/EFR
+echo "----------------------------------------------"
+echo "iox-bld10"
+ls -l /auto/iox-bld10-scratch1/EFR
+echo "----------------------------------------------"

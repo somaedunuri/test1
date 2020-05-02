@@ -1,0 +1,34 @@
+Pims pb breakdown:
+
+1. image/sym archival
+   1.1 Find *.sym, *.bom, *.lst in the workspace
+   1.2 copy selected images (defined in pb datafile) to provided archive location.
+   1.3 copy above identified sym/bom/lst files to archive location.
+   1.4 if archive path contains string 'archive', create a symlink to it in /auto/tftpboot-projects/enabuilds/production/ - symlink will be the version number of the build, and will also replace the 'latest' symlink.
+
+2. create a record in PIMS to describe the build, if one does not already exist
+   2.1 add a record for the current workspace and platform
+
+3. generate buglist
+   3.1 if the buglist has already been generated for this particular build, just copy it from the archive.
+   3.2 if this is the first time running buglist for this build, place a copy of the output in the archive
+
+4. take a note of any images that were not built successfully.
+
+5. gather image info so we can store image metadata in PIMS
+   5.1 run 'prt' on each image to get certificate info.
+('prt' is pre-built and committed in the workspace, both for linux and solaris)
+   5.2 run 'pie' on each image to get additional metadata (internal name, description, md5, and image version) ('pie' is a wrapper - if the pie executable has not been built for your current platform, it goes to build it.  Once complete, it runs 'pie' with the originally specified command line options.  If 'pie' is already built, it just passes the command line options through to that executable.)
+
+6. Update workspace record in PIMS with images metadata, and image build status.
+6.1 store the buglist for the current workspace
+6.2 mark the build as successful in PIMS
+
+7. update ddts integrated-in fields in cdets
+
+
+That should cover it,
+
+Dan
+
+

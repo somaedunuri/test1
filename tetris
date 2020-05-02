@@ -1,0 +1,18 @@
+Sure Ashi, I can provide the list of PI components.  It is better to provide info on how to find them because the list may change (better to go to the source itself)
+ 
+Hi Soma,
+ 
+In tetris we have directories naming convention for both PI and PD packages.  Here is how to find out the list of components
+ 
+1. cd to <tetris-pkg-workspace>/package_mdata.
+ 
+2. All PI components are stored in these files "iosxr-<pkg>/pkg-mdata/pkg_def.pl".  Please ignore any components that have been commmented out.
+ 
+3. As for PD components are stored in these files "<plat>-<pkg>/pkg-mdata/pkg_def.pl".
+ 
+If you have any questions, feel free to call, ST, or email.
+ 
+Thanks,
+Adisorn.
+
+

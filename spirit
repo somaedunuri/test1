@@ -1,0 +1,5 @@
+Build Commands 
+
+jam -sOPTIM_DISABLE=y -sPROCNTO_SPIRIT=y panini-mini-x.iso
+jam -sOPTIM_DISABLE=y -sPROCNTO_SPIRIT=y -sSPIRIT_BUILD=1 -sXROS=linux -sALL_IMAGES=y piref-spirit-full-x.vm
+jam -sOPTIM_DISABLE=y -sPROCNTO_SPIRIT=y -sSPIRIT_BUILD=1 -sXROS=linux -sALL_IMAGES=y piref-spirit-full-x-64.vm

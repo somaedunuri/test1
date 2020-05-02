@@ -1,0 +1,16 @@
+55 23 * * 6 cd /auto/cweb0/www-home/virtual/wwwin-release/relops/12.0S/ddts/bin; 12.0SST.sh
+55 22 * * 6 cd /auto/cweb0/www-home/virtual/wwwin-release/relops/12.1E/ddts/bin; 12.1E.sh
+00 23 * * 6 cd /auto/cweb0/www-home/virtual/wwwin-release/relops/IOSX/ddts/bin; iosx.sh
+00 22 * * 6 cd /auto/cweb0/www-home/virtual/wwwin-release/relops/IOSX/ddts/bin; platform.sh
+58 23 * * * cd /auto/cweb0/www-home/virtual/wwwin-release/relops/IOSX/ddts/bin; iox.sh
+55 23 * * * cd /auto/cweb0/www-home/virtual/wwwin-release/relops/IOSX/ddts/bin; aenatara.sh
+50 23 * * * cd /auto/cweb0/www-home/virtual/wwwin-release/relops/IOSX/ddts/bin; vperis.sh
+40 23 * * * cd /auto/cweb0/www-home/virtual/wwwin-release/relops/IOSX/ddts/bin; mydo.sh
+30 23 * * * cd /auto/cweb0/www-home/virtual/wwwin-release/relops/IOSX/ddts/bin; stumonks.sh
+20 23 * * 0 cd /auto/cweb0/www-home/virtual/wwwin-release/relops/IOSX/ddts/bin; smaniyar.sh
+10 23 * * 0 cd /auto/cweb0/www-home/virtual/wwwin-release/relops/IOSX/ddts/bin; rnavani.sh
+30 05 * * * cd /auto/cweb0/www-home/virtual/wwwin-release/relops/IOSX/Defects/CRONS; dtp.sh
+00 12 * * * cd /auto/cweb0/www-home/virtual/wwwin-release/relops/IOSX/Defects/CRONS; dtp.sh
+00 19 * * * cd /auto/cweb0/www-home/virtual/wwwin-release/relops/IOSX/Defects/CRONS; dtp.sh
+30 04 * * * cd /auto/cweb0/www-home/virtual/wwwin-release/relops/12.0S/Defects/CRONS; dtp.sh
+30 03 * * * cd /auto/cweb0/www-home/virtual/wwwin-release/relops/12.1E/Defects/CRONS; dtp.sh

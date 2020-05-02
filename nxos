@@ -1,0 +1,49 @@
+ 
+http://wikicentral.cisco.com/display/PROJECT/NXOS+Software+Patching
+
+tcsh
+source /auto/andatc/independent/shellrc-files/current/rc/.cshrc.build
+setenv PATH /auto/andatcd/suexec/1.0/bin:$PATH
+
+setenv SMU_LIB_DIR /auto/reform/smu-beta/tools/smu/lib
+
+bash
+source /auto/andatc/independent/shellrc-files/current/rc/.bashrc.build
+export PATH=/auto/andatcd/suexec/1.0/bin:$PATH
+
+export SMU_LIB_DIR=/auto/reform/smu-beta/tools/smu/lib
+
+acme nw -lineup /nfs/acmemeta/usrlu/sanos/smu_n7000_r71x_8.lu 
+
+/auto/andatc/independent/build-scripts/1.0/bin/count_lines.pl -d <dir> -e <e-file> 
+
+SHELL : http://iwe.cisco.com/web/view-post/post/-/posts?postId=409100154
+DIFFS :  /ws/akssingh-sjc/sysmgr_test_diffs --comps bgp
+DIFFS :	/ws/akssingh-sjc/stats_client_diff --comps stats_client  
+
+
+/auto/pi_modularity/patch_tools/patch_smu_build//patch_bld_tool.py 
+--lineup /nfs/acmemeta/usrlu/sanos/smu_n7000_r71x_7.lu 
+--workdir /scratch1/soma/nx-smu --cdet CSC0000064 --product n7000_s2
+--diff  /ws/akssingh-sjc/stats_client_diff --comps stats_client
+
+
+/auto/pi_modularity/patch_tools/patch_smu_build//patch_bld_tool.py 
+--lineup /nfs/acmemeta/usrlu/sanos/smu_n7000_r71x_8.lu --product n7000_s1 
+--bldtype gdb --comp infra/system_manager --diff /ws/soma-sjc/smu-test.diff 
+--workdir /scratch1/soma/smu.diffs --restarttype standby-reset 
+--cdet CSCth27028
+
+% cd workspace_root/build 
+% kern_parCompile.pl -p <complete_path_to_workspace_root> -n -a -f -u -t all
+% snmp_compileEtcNew.pl -p <complete_path_to_workspace_root> -dnt -a -u
+% ibuild -fullimage n7000_s2_dk9 -bldtype final
+% ibuild -fullimage n7000_s1_dk9 -bldtype final
+% setenv NXOS_NO_SUEXEC 1
+% setenv NXOS_NO_SUEXEC_IMAGING_DIR /var/tmp
+% ibuild -fullimage n7700_s2_dk9 -bldtype final
+% ibuild -fullimage n7000_s1_kickstart -bldtype final
+% ibuild -fullimage n7000_s2_kickstart -bldtype final
+% ibuild -fullimage n7700_s2_kickstart -bldtype final
+
+

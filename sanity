@@ -1,0 +1,25 @@
+Sanity tracking page path :
+	 /auto/ioxbuild/nightly/PIMS/gcc47-dev3/earms/earms_id_file
+
+dding Sanity Grouop permissions
+
+ /auto/xrtools/add_user_to_sanity_groups.py soma
+
+xSPEED
+curl "http://earms-app-2-vm.cisco.com/server/EarmsGroupInfo?op=procSelfAdd&selfAddUserID=xxxxx&selfAddGroup=xSPEED&selfAddPw=&action=Submit"
+
+iVista
+curl "http://earms-app-2-vm.cisco.com/server/EarmsGroupInfo?op=procSelfAdd&selfAddUserID=xxxxx&selfAddGroup=RTP-VZW&selfAddPw=sanity&action=Submit"
+
+Scapa
+curl "http://earms-app-2-vm.cisco.com/server/EarmsGroupInfo?op=procSelfAdd&selfAddUserID=xxxxx&selfAddGroup=Scapa&selfAddPw=scapa&action=Submit"
+
+Panini
+curl "http://earms-app-2-vm.cisco.com/server/EarmsGroupInfo?op=procSelfAdd&selfAddUserID=xxxxx&selfAddGroup=Panini_Sanity&selfAddPw=&action=Submit"
+
+
+xrut-enxr-smoke
+curl "http://earms-app-2-vm.cisco.com/server/EarmsGroupInfo?op=procSelfAdd&selfAddUserID=xxxxx&selfAddGroup=XRUT&selfAddPw=&action=Submit"
+
+
+

@@ -1,0 +1,21 @@
+DDTS file : /ddts/Local/notify_list/demgrs.ena
+
+CARETS Commands :
+
+	findcomp -p CSC.ena -w Component,DE-Manager,Product
+	cat xxx | fixcomp 
+
+for i in `cat ww8`
+do
+         findcomp -i $i+all+CSC.ena -w Component,DE-Manager
+done
+
+for i in `cat kk1`
+do
+        echo $i
+        fixcr -i $i DE-manager harinara
+done
+
+addfile CSCsg16651 Release-note /tmp/xx1
+addnote CSCsg16651 Release-note /tmp/xx1
+

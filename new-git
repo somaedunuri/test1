@@ -1,0 +1,26 @@
+mkview -i montalvo -v /vobs/mars -s /ws/soma-sjc
+ls /view/soma-montalvo/vobs/mars
+
+cd /ws/soma-sjc/
+mkdir mars.git ;  cd mars.git
+git init  .
+cd ..
+git clone /ws/soma-sjc/mars.git  mars
+
+
+cd /view/soma-montalvo/vobs/mars
+cp -r . /ws/soma-sjc/mars/
+ 
+ 
+# Commit the files
+cd /ws/soma-sjc/mars/
+git add `find *`
+git checkout -b montalvo
+git commit -am 'Initial commit to the new git repo'
+
+cd /ws/soma-sjc
+git clone /ws/soma-sjc/mars.git   mars_local
+git checkout montalvo
+cd mars_local
+<execute build commands >
+

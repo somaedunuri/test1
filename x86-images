@@ -1,0 +1,6 @@
+
+jam -j4 -C -sJAM_MINI_XR=enabled -sCRS_X86_PHOENIX_RP=enabled comp-hfr-mini-px-phoenix.vm -lx86comp_log.txt 
+jam -l -d2 -j8 hfr-mcast-px.pie
+jam -l -d2 -j8 hfr-mpls-px.pie
+jam -l -d2 -j8 hfr-mgbl-px.pie
+

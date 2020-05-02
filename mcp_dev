@@ -1,0 +1,20 @@
+
+ssh mcp-bld-lnx-208
+setenv PATH /auto/binos-tools/bin:$PATH 
+
+mkdir mcp_binos ;  cd mcp_binos
+acme nw -sb binos -proj main
+acme nw -sb binos -proj main%30765
+setenv BINOS_ROOT /scratch/3/soma/mcp_binos/linkfarm/ppc
+
+cd ..
+start_task -v /vob/ios -t mcp_iosd -b mcp_dev -a -d /scratch/3/soma
+start_task -v /vob/ios -t mcp_iosd -l <LABEL> -a -d /scratch/3/soma
+ct setview soma-mcp_iosd
+
+cd /vob/ios/sys
+
+nohup mcp_ios_precommit -r /scratch/3/soma/mcp_binos rp1_super >&! rp1.log1 &
+nohup mcp_ios_precommit -r /scratch/3/soma/mcp_binos rp2_super >&! rp2.log1 &
+
+cc_rmview -force -ns -vob /vob/ios -view <VIEW>

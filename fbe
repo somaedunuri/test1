@@ -1,0 +1,12 @@
+
+sudo /auto/fbe/prod/bin/fbe_install
+
+/auto/fbe/prod/bin/launcher -n cel5.03-x86_64-2.4
+
+export ACME_VIEW_SERVER_LOCAL_SELECT_MODE=0
+
+
+ /ws/rbc-sjc/CSCui20280-diff.txt
+CSCuh56009 
+CSCug80107
+

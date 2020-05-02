@@ -1,0 +1,524 @@
+#!/usr/cisco/bin/perl -w
+##############################################################################
+# $Header: /auto/mssbu-swtools/iox/RCS/build_prp,v 1.60 2006/12/21 23:20:52 jwu Exp $:
+##############################################################################
+#
+# DESC: Build IOX core prp targets or a specified image in current workspace.
+# IOXDESC: Build IOX core prp targets or a specified image in current workspace.
+#
+use Getopt::Long;
+use File::Basename;
+
+select STDOUT; $|=1;
+
+$my_script=basename($0);
+$ACME="/usr/cisco/bin/acme";
+$JAM="/router/bin/jam";
+$JAM=$ENV{'MY_JAM'} if ( defined $ENV{'MY_JAM'} );
+
+# To make sure that the required path is there for jam
+$ENV{'PATH'} = "/usr/cisco/bin:/router/bin:/usr/atria/bin:/usr/local/ddts/bin:/usr/local/bin:/usr/sbin:/usr/bin:/bin:/usr/ccs/bin:/usr/ucb:.";
+
+# Added this one always b/c there are some tools may not visible to everybody
+$ENV{'PATH'} .= ":/auto/mssbu-swtools/iox/bin";
+
+$ENV{'PLATFORM'}="";
+
+# scripts needed
+$CHG_TAG="chg_tag";
+$GET_BLD_CMD="get_bld_cmd";
+$GET_IMAGE_PATH="get_image_path";
+$LOG_TOOL="logit";
+
+sub Usage {
+print <<U_EOF;
+
+    Build IOX core prp targets or a specified image in current workspace.
+
+    Usage: $my_script [-clean][-targ <targ>][-ext <log_ext>]
+           [-infra][-sbc][-ipsec][-k9sec][-firewall][-ii]
+           [-mail_to "<mail_list>"][-mail_sub <mail_sub>]
+           [-jam_opt "jam_opts_you_want"]
+           [-ver <build_ver>][-rev <build_rev>]
+           [-old_jam][-show][-help]
+
+    -clean: run jam clean; default is not to run jam clean
+    -targ: build this target only; the target has to be in PIMS database
+    -ext: <log_ext> is anything you want to be appended to the logfile
+    -infra: to build infra test pie too; if -targ is given, then -infra is ignored.
+    -sbc: to build c12k-sbc.pie too; if -targ is given, then -sbc is ignored.
+    -ipsec: to build c12k-ipsec-service.pie too; if -targ is given, then -ipsec is ignored.
+        Note that if this target is specified, c12k-k9sec.pie will be built too
+        since it is needed by the sanity test.
+    -k9sec: to build c12k-k9sec.pie too; if -targ is given, then -k9sec is ignored.
+        The tool will install the crypto toolkit automatically.
+    -firewall: to build c12k-firewall.pie too; if -targ is given, then -fireall is ignored.
+    -ii: to build nothing but incremental install pies only, c12k-mini.pie,
+        c12k-fpd.pie, and c12k-diags.pie.
+    -mail_to: <mail_list> is the persons you want to send mail to when the
+        build is done. Remember to double quote the names if there are more
+        than one.
+    -mail_sub: the mail subject you want instead of default; default is
+               PRP build is done in <ws>
+    -jam_opt: the options you want to pass to jam. The log will be created by
+        the script; therefore there is no need to specify log.
+    -ver: the image version to use to build; Will change the VERSION tag in
+        package_mdata/*/pkg-mdata/*.pl files
+    -rev: the image revision to use to build; Will change the RELEASE tag in
+        package_mdata/*/pkg-mdata/*.pl files
+    -old_jam: to use jam 1.0.0 to build; default is to use jam 1.1.0 and up.
+    -show: to usee what the tool does but not to build
+    -help: to get this help message
+    
+    This is a script for you to build PRP images/pies. It only builds
+    c12k-mini.vm c12k-mgbl.pie c12k-mpls.pie c12k-mcast.pie
+    if -targ is not specified. Note that building c12k-mini.vm will also build
+    mbiprp-rp.vm and mbiprp-drp.vm.
+
+    If you want to have a different build version and/or revision for the
+    images, you can give -ver and/or -rev option(s). The tool will change the
+    version and/or revision in the workspace first and then proceed to build.
+    Note that the version given cannot be smaller than the one in the workspace.
+
+    Here is what it does:
+    1. tools/clean/clean -targ 4k,ppc,4k-ppc,obj-ppc-c12000 if
+       -clean is specified
+    2a. it builds the default targets if -targ is not specified
+       jam bldc12kvm mini 
+       jam bldc12kpie c12k-mpls.pie c12k-mcast.pie and c12k-mgbl.pie
+       jam bldc12kpie -pflash/syncfs c12k-infra-test.pie if -infra is given
+    2b. if -targ is specified, it only builds that target.
+
+    The build log will be saved in c12k*.log<log_ext>
+
+    For example,
+
+    $my_script -ext 1 -mail_to "eng1 eng2"
+    builds c12k-mini.vm c12k-mpls.pie c12k-mcast.pie c12k-mgbl.pie
+
+    $my_script -ext 1 -infra
+    builds c12k-mini.vm c12k-mpls.pie c12k-mcast.pie c12k-mgbl.pie c12k-infra-test.pie
+
+    $my_script -ext 1 -mail_to "eng1 eng2" -targ "c12k-infra-test.pie" 
+    builds c12k-infra-test.pie only
+
+    $my_script -ver 3.3.80 
+    builds the core PRP images with version 3.3.80. 
+
+    Note: You need to run this tool in a workspace root
+    The default is to run /router/bin/jam. If the env MY_JAM defined, then it
+    will use the jam in env MY_JAM.
+
+U_EOF
+
+exit;
+}
+
+$crypto_missing="yes";
+
+sub install_n_bld_crypto() {
+
+&install_crypto();
+if ( $crypto_missing eq "yes" ) {
+    print "SKIPPED c12k-k9sec.pie due to missing crypto stuff.\n";
+    }
+else {
+    &bld_k9sec();
+    }
+
+}
+
+sub install_crypto() {
+
+$crypto_missing="yes";
+
+# How to determine whether a crypto is installed or not?
+if ( -f "crypto/toolkit/.ACME/component.info" ) {
+    print "INFO: crypto/toolkit has already installed.\n";
+    $crypto_missing="";
+    return;
+    }
+
+print "Install crypto toolkit since c12k-k9sec.pie is to be built\n";
+$result=0 if ( defined $opt_show );
+$my_cmd="$ACME mw -noprompt -comp crypto/toolkit\@crypto/cepki/toolkit.lu";
+$result=system($my_cmd) if ( ! defined $opt_show );
+if ( $result != 0 && ! defined $opt_show ) {
+    print "WARN: Failed to install crypto toolkit.\n";
+    }
+else {
+    $crypto_missing="";
+    }
+
+}
+
+sub bld_k9sec() {
+
+    $my_cmd="$JAM bldc12kpie -pflash/syncfs ${opt_jam_opts} c12k-k9sec.pie >c12k-k9sec.log${opt_ext} 2>&1";
+    # The old jam may not work this since it is a new pie; Just put it here.
+    $my_cmd="tools/misc/bldc12kpie -pflash/syncfs ${opt_jam_opts} c12k-k9sec.pie >c12k-k9sec.log${opt_ext} 2>&1" if ( defined $opt_old_jam );
+    print "$my_cmd\n";
+    system($my_cmd) if ( ! defined $opt_show );
+    if ( $? != 0 && ! defined $opt_show ) {
+        print "ERROR: $my_cmd\n";
+        }
+}
+
+sub bld_ii_pies () {
+
+    # It is really bad to hardcord the build command but ...
+    $bld_error=0;
+    $my_cmd="$JAM bldc12kpie ${opt_jam_opts} c12k-mini.pie >c12k-mini.pie.log${opt_ext} 2>&1";
+    print "$my_cmd\n";
+    system($my_cmd) if ( ! defined $opt_show );
+    if ( $? != 0 && ! defined $opt_show ) {
+        print "ERROR: $my_cmd\n";
+        $bld_error=1;
+        }
+    # Can I combine the two together to be faster?
+    $my_cmd="$JAM bldc12kpie ${opt_jam_opts} -pflash/syncfs c12k-fpd.pie >c12k-fpd.pie.log${opt_ext} 2>&1";
+    print "$my_cmd\n";
+    system($my_cmd) if ( ! defined $opt_show );
+    if ( $? != 0 && ! defined $opt_show  ) {
+        print "ERROR: $my_cmd\n";
+        $bld_error=1;
+        }
+    $my_cmd="$JAM bldc12kpie ${opt_jam_opts} -pflash/syncfs c12k-diags.pie >c12k-diags.pie.log${opt_ext} 2>&1";
+    print "$my_cmd\n";
+    system($my_cmd) if ( ! defined $opt_show );
+    if ( $? != 0 && ! defined $opt_show ) {
+        print "ERROR: $my_cmd\n";
+        $bld_error=1;
+        }
+    if ( $crypto_missing eq "" ) {
+        $my_cmd="$JAM bldc12kpie ${opt_jam_opts} c12k-k9sec.pie >c12k-k9sec.pie.log${opt_ext} 2>&1";
+        print "$my_cmd\n";
+        system($my_cmd) if ( ! defined $opt_show );
+        if ( $? != 0 && ! defined $opt_show ) {
+            print "ERROR: $my_cmd\n";
+            $bld_error=1;
+            }
+        }
+
+return $bld_error;
+}
+
+
+sub chk_bld_status () {
+
+$msg="Targets Attempted: $build_targs\n";
+$bad_msg="";
+@img_list=split(/\s+/,$build_targs);
+$status="SUCCESSFUL";
+$rc=0;
+foreach $each_img ( @img_list ) {
+    $img_loc=`$GET_IMAGE_PATH -img $each_img`;
+    if ( $? != 0 ) {
+        $bad_msg .= "$img_loc\n";
+        $status="UNKNOWN";
+        # what is the rc value?
+        }
+    else {
+        chomp($img_loc);
+        if ( -f $img_loc ) {
+            $msg .= "SUCCEED: $img_loc\n";
+            # The following is requested by weiliu.
+            # if the image is c12k-mini.vm, then mbi12000-*.vm should be
+            # there anyway; there is no need to check it.
+            if ( $each_img =~ /c12k-mini.vm/ ) {
+                $img_loc=`$GET_IMAGE_PATH -img mbiprp-rp.vm -prod hfr`;
+                chomp($img_loc);
+                $msg .= "SUCCEED: $img_loc\n";
+                $img_loc=`$GET_IMAGE_PATH -img mbiprp-drp.vm -prod hfr`;
+                chomp($img_loc);
+                $msg .= "SUCCEED: $img_loc\n";
+                }
+            }
+        else {
+            $bad_msg .= "ERROR: Missing $img_loc\n";
+            $status="FAILED";
+            $rc=9;
+            }
+        }
+    }
+$msg .= $bad_msg;
+$msg .= "\nBuild logs: ${my_ws}/c12k*.log${opt_ext}.\n";
+#
+# When rerun a build, if jam clean is not done, the compilation may fail but
+# the old image still exists. This will mislead people to think the build is
+# sucessful.
+# Just grep the ...failed pattern to give some warnings in case.
+#
+if ( $status ne "SUCCESSFUL" ) {
+    $failed_msg=`egrep -e "^\.\.\.failed" -e "ERROR" -e "don't know how to make" -e "ERROR: " -e "^Jam: Fatal Error" ${my_ws}/c12k*.log${opt_ext}`;
+    if ( $failed_msg ) {
+        $msg .= $failed_msg;
+        }
+    }
+
+print "$status - PRP build is done in $my_ws\n";
+print "$msg\n";
+exit ($rc) if ( ! defined $opt_mail_to );
+
+print "Attempting to send mail to $opt_mail_to\n";
+$subject="$status - PRP build is done in $my_ws";
+$subject=$opt_mail_sub if ( $opt_mail_sub );
+open( MAILTO,
+"| /bin/mailx -s \"$subject\" $opt_mail_to") || die("Cannot open mail:$!");
+print MAILTO "$msg\n";
+close(MAILTO);
+exit($rc);
+}
+
+
+
+#############################################################################
+# main starts here.
+#############################################################################
+print "Cmd: $my_script @ARGV\n";
+
+# Record the call.
+system("$LOG_TOOL $my_script @ARGV");
+#
+
+GetOptions(
+    "clean" => \$opt_clean,
+    "ext=s" => \$opt_ext,
+    "infra" => \$opt_infra,
+    "sbc" => \$opt_sbc,
+    "ipsec" => \$opt_ipsec,
+    "k9sec" => \$opt_k9sec,
+    "firewall" => \$opt_firewall,
+    "ii" => \$opt_ii,
+    "targ=s" => \$opt_targ,
+    "mail_to=s" => \$opt_mail_to,
+    "mail_sub=s" => \$opt_mail_sub,
+    "jam_opt=s" => \$opt_jam_opts,
+    "ver=s" => \$opt_bld_ver,
+    "rev=s" => \$opt_bld_rev,
+    "old_jam" => \$opt_old_jam,
+    "show" => \$opt_show,
+    "help" => \$help) or &Usage;
+
+if ( $#ARGV > -1 ) {
+    print "Unknown argument: @ARGV\n";
+    &Usage;
+    }
+
+&Usage if defined $help;
+
+if ( ! -d ".ACMEROOT" ) {
+    print "ERROR: You are not in a workspace root.\n";
+    exit 9;
+    }
+
+$my_ws=`pwd`;
+chomp($my_ws);
+
+$chg_tag_cmd="";
+if ( defined $opt_bld_ver ) {
+    $chg_tag_cmd="$CHG_TAG -ver $opt_bld_ver";
+    }
+if ( defined $opt_bld_rev ) {
+    $chg_tag_cmd="$CHG_TAG -rev $opt_bld_rev";
+    }
+if ( defined $opt_bld_ver && defined $opt_bld_rev ) {
+    $chg_tag_cmd="$CHG_TAG -ver $opt_bld_ver -rev $opt_bld_rev";
+    }
+
+# Changing the version and revision if desired.
+if ( $chg_tag_cmd ne "" ) {
+    print "Attempting to change version and revision by\n$chg_tag_cmd\n";
+    system($chg_tag_cmd) if ( ! defined $opt_show );
+    # If opt_show, then the system call did not execute. print always return 1.
+    if ( ! defined $opt_show && $? != 0 ) {
+        print "\nERROR: failed to change version or revision. Abort.\n";
+        exit 9;
+        }
+    }
+
+# jam clean if needed.
+if ( defined $opt_clean ) {
+    # Accordig to lleung, the following command is enough
+    # jam -sDEFAULT_TARGETS=4k,ppc,4k-ppc clean
+    $my_cmd="tools/clean/clean -targ 4k,ppc,4k-ppc,ppc-c12000";
+    print "Cmd: $my_cmd\n";
+    system($my_cmd) if ( ! defined $opt_show );
+    if ( $? != 0 && ! defined $opt_show ) {
+        print "ERROR: $my_cmd\n";
+        exit 9;
+        }
+    }
+
+$opt_ext="" if ( ! defined $opt_ext );
+$opt_jam_opts="" if ( ! defined $opt_jam_opts);
+
+# When incremental install is specified, it only builds some pies.
+if ( defined $opt_ii ) {
+    $build_targs="c12k-mini.pie c12k-fpd.pie c12k-diags.pie c12k-k9sec.pie";
+    &install_crypto();
+    if ( $crypto_missing eq "yes" ) {
+        print "Remove c12k-k9sec.pie from build target.\n";
+        $build_targs =~ s/c12k-k9sec\.pie//;
+        }
+    print "Will build $build_targs\n";
+    $result=&bld_ii_pies;
+    &chk_bld_status if ( ! defined $opt_show );
+    exit $result;
+    }
+
+$all_targs="c12k-mini.vm c12k-mpls.pie c12k-mcast.pie c12k-mgbl.pie";
+
+$build_targs=$all_targs;
+
+$comp_targs="c12k-mpls.pie c12k-mcast.pie c12k-mgbl.pie";
+$build_targs .= " c12k-infra-test.pie" if ( defined $opt_infra );
+$build_targs .= " c12k-sbc.pie" if ( defined $opt_sbc );
+$build_targs .= " c12k-ipsec-service.pie" if ( defined $opt_ipsec );
+$build_targs .= " c12k-k9sec.pie" if ( defined $opt_k9sec );
+$build_targs .= " c12k-firewall.pie" if ( defined $opt_k9sec );
+
+$my_bld_cmd="";
+if ( defined $opt_targ ) {
+    # check to see whether it is a valid target. The only way I can think of
+    # is to query PIMS to see whether it is there is a build command for it.
+    # and there is build command for it.
+    # I cannot do anything with the switch of old jam or new jam
+    # Make sure there is only 1 target given.
+    @opt_targs=split(/\s|,/,$opt_targ);
+    if ( $#opt_targs != 0 ) {
+        print "ERROR: $opt_targ has more than 1 target.\n";
+        exit;
+        }
+    $my_cmd="$GET_BLD_CMD -img $opt_targ -prod c12k";
+    print "Getting the build command from PIMS build database for $opt_targ by\n[$my_cmd]\n";
+    @result=`$my_cmd`;
+    if ( $? != 0 ) {
+        print "@result";
+        exit 9;
+        }
+    $my_bld_cmd=$result[0];
+    chomp($my_bld_cmd);
+    $my_bld_cmd =~ s,/router/bin/jam,$ENV{'MY_JAM'}, if ( defined $ENV{'MY_JAM'} );
+    $build_targs="$opt_targ";
+    }
+
+if ( $my_bld_cmd ne "" ) {
+    $result=rindex($my_bld_cmd," ");
+    $my_bld_targ=substr($my_bld_cmd,$result,);
+    substr($my_bld_cmd,$result) = " $opt_jam_opts $my_bld_targ";
+    }
+
+if ( $build_targs =~ /c12k-k9sec\.pie/ ) {
+    &install_crypto();
+    if ( $crypto_missing eq "yes" ) {
+        print "Remove c12k-k9sec.pie from build target.\n";
+        $build_targs =~ s/c12k-k9sec\.pie//;
+        }
+    }
+
+# Now do the jam part
+if ( ! defined $opt_targ ) {
+    $my_cmd="$JAM bldc12kvm ${opt_jam_opts} mini -para >c12k-vm.log${opt_ext} 2>&1";
+    $my_cmd="tools/misc/bldc12kvm ${opt_jam_opts} mini -para  >c12k-vm.log${opt_ext} 2>&1" if ( defined $opt_old_jam );
+    print "$my_cmd\n";
+    system($my_cmd) if ( ! defined $opt_show );
+    if ( $? != 0 && ! defined $opt_show ) {
+        print "ERROR: $my_cmd\n";
+        }
+
+    $my_cmd="$JAM bldc12kpie ${opt_jam_opts} $comp_targs -para >c12k-pie.log${opt_ext} 2>&1";
+    $my_cmd="tools/misc/bldc12kpie ${opt_jam_opts} $comp_targs -para >c12k-pie.log${opt_ext} 2>&1" if ( defined $opt_old_jam );
+    print "$my_cmd\n";
+    system($my_cmd) if ( ! defined $opt_show );
+    if ( $? != 0 && ! defined $opt_show ) {
+        print "ERROR: $my_cmd\n";
+        }
+
+    if ( defined $opt_infra ) {
+        $my_cmd="$JAM bldc12kpie -pflash/syncfs ${opt_jam_opts} c12k-infra-test.pie >c12k-infra.log${opt_ext} 2>&1";
+        $my_cmd="tools/misc/bldc12kpie -pflash/syncfs ${opt_jam_opts} c12k-infra-test.pie >c12k-infra.log${opt_ext} 2>&1" if ( defined $opt_old_jam );
+        print "$my_cmd\n";
+        system($my_cmd) if ( ! defined $opt_show );
+        if ( $? != 0 && ! defined $opt_show ) {
+            print "ERROR: $my_cmd\n";
+            }
+        }
+
+    if ( defined $opt_sbc ) {
+        $my_cmd="$JAM bldc12kpie -pflash/syncfs ${opt_jam_opts} c12k-sbc.pie >c12k-sbc.log${opt_ext} 2>&1";
+        $my_cmd="tools/misc/bldc12kpie -pflash/syncfs ${opt_jam_opts} c12k-sbc.pie >c12k-sbc.log${opt_ext} 2>&1" if ( defined $opt_old_jam );
+        print "$my_cmd\n";
+        system($my_cmd) if ( ! defined $opt_show );
+        if ( $? != 0 && ! defined $opt_show ) {
+            print "ERROR: $my_cmd\n";
+            }
+        }
+
+    $k9sec_done="";
+
+    if ( defined $opt_ipsec ) {
+        $my_cmd="$JAM bldc12kpie -pflash/syncfs ${opt_jam_opts} c12k-ipsec-service.pie >c12k-ipsec.log${opt_ext} 2>&1";
+        # The old jam may not work this since it is a new pie; Just put it here.
+        $my_cmd="tools/misc/bldc12kpie -pflash/syncfs ${opt_jam_opts} c12k-ipsec-service.pie >c12k-ipsec-service.log${opt_ext} 2>&1" if ( defined $opt_old_jam );
+        print "$my_cmd\n";
+        system($my_cmd) if ( ! defined $opt_show );
+        if ( $? != 0 && ! defined $opt_show ) {
+            print "ERROR: $my_cmd\n";
+            }
+        else {
+            print "Continue to build c12k-k9sec.pie since ipsec sanity needs it.\n";
+            &install_n_bld_crypto();
+            $k9sec_done="yes";
+            }
+        }
+    }
+
+    if ( defined $opt_k9sec ) {
+        if ( $k9sec_done eq "" ) {
+            &install_n_bld_crypto();
+            }
+        else {
+            print "WARN: c12k-k9sec.pie seems to be built after c12k-ipsec-service.pie already. If this is not true, please rebuild it.\n";
+            }
+        }
+
+    if ( defined $opt_firewall ) {
+        $my_cmd="$JAM bldc12kpie ${opt_jam_opts} c12k-firewall.pie >c12k-firewall.log${opt_ext} 2>&1";
+        print "$my_cmd\n";
+        system($my_cmd) if ( ! defined $opt_show );
+        if ( $? != 0 && ! defined $opt_show ) {
+            print "ERROR: $my_cmd\n";
+            }
+        }
+else {
+    # This is the case for one target.
+    if ( defined $opt_targ ) {
+        if ( $my_bld_cmd eq "" || $build_targs eq "" ) {
+        print "ERROR: build command for $opt_targ is empty or build target is empty. Cannot build.\n";
+        exit 9;
+        }
+        # The way to build c12k-mini.vm is special.
+        if ( $opt_targ eq "c12k-mini.vm" ) {
+            $my_cmd="$JAM bldc12kvm ${opt_jam_opts} mini >c12k-vm.log${opt_ext} 2>&1";
+            $my_cmd="tools/misc/bldc12kvm ${opt_jam_opts} mini >c12k-vm.log${opt_ext} 2>&1" if ( defined $opt_old_jam );
+            }
+        else {
+            # Cannot do anything about old or new jam.
+            $my_cmd="$my_bld_cmd >c12k-${opt_targ}.log${opt_ext} 2>&1\n";
+            }
+        print "$my_cmd\n";
+        system($my_cmd) if ( ! defined $opt_show );
+        if ( $? != 0  && ! defined $opt_show ) {
+            print "ERROR: $my_cmd\n";
+            }
+        else {
+            if ( $opt_targ =~ /c12k-ipsec-service\.pie/ ) {
+                print "Continue to build c12k-k9sec.pie since ipsec sanity needs it.\n";
+                &install_n_bld_crypto();
+                }
+            }
+        }
+    }
+
+&chk_bld_status if ( ! defined $opt_show );

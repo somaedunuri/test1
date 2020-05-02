@@ -1,0 +1,77 @@
+e-mail
+
+Soma,
+
+This email thread contains: 
+-	Anoosh’s instructions on how to subscribe a SLURM machine and 
+-	Todd’s instructions on how to install Python VM and diffoscope app
+
+Re-summarize in short for you to proceed easier here:
+
+From any Linux xterm, do:
+
+	/auto/vxr/slurm_launch/python/slurm m1
+	/auto/vxr/slurm_launch/python/slurm -d 5 -c 4 launch
+
+You will get back a name of your subscribed slurm host.  Then
+
+	ssh to that machine and create /nobackup/soma directory
+	cd /nobackup/soma && bash 
+	(this will bring to the directory and anchor yourself to a bash shell)
+	source /etc/profile.d/proxy.sh.back
+	/usr/bin/python3.6 -mvenv xr-rpb --system-site-packages 
+	(you can use any name for xr-rpb where Python3.6 vm will be created under)
+	source xr-rpb/bin/activate
+	pip install diffoscope
+
+Up to here, the diffoscope tool is installed under 3.6 Python VM in the path of /nobackup/soma/xr-rpb/bin/diffoscope.
+
+	PATH=$PATH:/nobackup/soma/xr-rpb/bin/
+	(should setup the path so you can just type “diffoscope -h” to see the command help.
+
+I have come up with a wrapper script to run the tool in a consistent way: /users/rbc/bin/diffoscope.sh
+
+You can create subdir under /nobackup/soma and copy the iso files under and type:
+
+/users/rbc/bin/diffoscope.sh -t <iso-file-1> <iso-file-2>
+
+Thanks,
+Ron
+
+=========================ORIGINlwa Mail==================================.
+
+Soma,
+
+This email thread contains: 
+-	Anoosh’s instructions on how to subscribe a SLURM machine and 
+-	Todd’s instructions on how to install Python VM and diffoscope app
+
+Re-summarize in short for you to proceed easier here:
+
+From any Linux xterm, do:
+
+1.	/auto/vxr/slurm_launch/python/slurm m1
+2.	/auto/vxr/slurm_launch/python/slurm -d 5 -c 4 launch
+
+You will get back a name of your subscribed slurm host.  Then
+
+3.	ssh to that machine and create /nobackup/soma directory
+4.	cd /nobackup/soma && bash (this will bring you to the directory and anchor yourself to a bash shell)
+5.	source /etc/profile.d/proxy.sh.back
+6.	/usr/bin/python3.6 -mvenv xr-rpb --system-site-packages (you can use any name for xr-rpb where Python3.6 vm will be created under)
+7.	source xr-rpb/bin/activate
+8.	pip install diffoscope
+
+Up to here, the diffoscope tool is installed under 3.6 Python VM in the path of /nobackup/soma/xr-rpb/bin/diffoscope.
+#7 should setup the path so you can just type “diffoscope -h” to see the command help.
+
+I have come up with a wrapper script to run the tool in a consistent way: /users/rbc/bin/diffoscope.sh
+
+You can create subdir under /nobackup/soma and copy the iso files under and type:
+
+/users/rbc/bin/diffoscope.sh -t <iso-file-1> <iso-file-2>
+
+Thanks,
+Ron
+
+

@@ -1,0 +1,23 @@
+SMU Archive :
+
+	/auto/enabuild/smu_archive
+	/auto/smu_archive1
+
+Source Archive :
+
+	/auto/storage8
+	/auto/srcarchive1
+	/auto/srcarchive2
+
+Image and Sym archive :
+	
+	/vws/vqx/archive
+	/auto/ioxarchive1
+	/auto/ioxarchive2
+
+
+Build partitions :
+
+	/vws/aga/production
+	/auto/ioxbuild1
+	/auto/ioxbuild2

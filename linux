@@ -1,0 +1,17 @@
+
+source /auto/ioxsge/default/common/settings.csh
+
+qstat -f
+
+Linux Server Funding :
+
+SPRSG	: 31
+ERBU	: 14
+CRBU	: 15
+Goreyo	: 20
+SBC	:  8
+
+
+Accesing Linux files from Windows : 
+Enter	\\sjc5-netapp24b\soma
+in windows serach menu.

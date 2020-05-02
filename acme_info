@@ -1,0 +1,110 @@
+ 	ACME Commands 
+ 	--------------
+
+/auto/iox/bin/xr_my_ws_efr 
+
+enxr sanity run :
+	/auto/xrut/xrut-gold/enxr-xrut-combo.py  
+Commands :
+
+setenv ACME_LOCALE sj-ios_ena-2		(to skip PIMS access check)
+setenv ACME_CTL_FILE_USE_MASTER = 1
+setenv ACME_DISABLE_TRIGS all
+setenv ACME_DISABLE_PROCESS pims_commit_file_throttle_checking
+setenv ACME_DISABLE_COPYRIGHT 1
+setenv ADD_UT_ENCL_DISABLE  1		 (disable UT enclosure check)
+setenv PIMS_DISABLE_PRRQ_TRIG 1		 (disable PRRQ Check)
+setenv ACME_ACCESSLOCK_TOOL_SRCH_LIST 1  (disable the commit access )
+setenv SMU_NO_DDTS_CHECK to 1		 (disable DDTS check in SMU commit)
+Setenv ISSU_ANALYSIS_DISABLE 1		(disable ISSU check)
+setenv ENDIAN_ANALYSIS_DISABLE 1
+setenv ACME_MAX_COMMIT_FILE_SIZE 18
+unsetenv ACME_VIEW_SERVER  
+setenv ACME_VIEW_SERVER sjc-acme-v03
+setenv PIMS_DISABLE_SYNC_TRIG 1
+setenv PROTO_COMPAT_DISABLE 1
+setenv ACME_DISABLE_TRIGS api_checker
+setenv ACME_DISABLE_PROCESS api_checker
+setenv ISSU_UT_ENCL_DISABLE 1
+setenv SSE_UCODE_CHECK_DISABLE 1
+setenv EZCHIP_UCODE_CHECK_DISABLE 1
+setenv ACME_PROCESS_DEVELOPER 1		.acme_process commit setting...
+setenv ACME_GIT_CLONE_SHALLOW_DEPTH  1
+
+
+labels :
+	rlog -h /auto/enacvs/lineups/ios_ena/ci-520/RCS/ci-520.lu,v
+	rlog -h /auto/enacvs/lineups/sanos/RCS/zd7_1_0_bundle.lu,v 
+
+acme precommit -skip_merge_chk -comp x,y,z ...
+acme bc -branch <xxx> -comp <xxx> -base_version <ref point>
+
+ - acme nw -lineup default.lu   
+ - acme mw -lineup default.lu   
+ - acme nw -lineup default.lu%EFR-00000xxxxx
+ - acme mw -comp <comp>@fwd-33/?? 
+ - acme mw -remove <comp>@main/5
+
+ - acme patch -input <file_name>
+ - acme precommit
+ - acme commit
+
+ - acme describe -comp all
+ - acme describe -comp <comp_name>
+
+ - acme diff -ws -from_ver ci-35.lu%PROD_BUILD.. -to_ver ci-35.lu%PROD_BUILD...
+ - acme diff -comp <comp_name> -from_ver ci-33/1 -to_ver main/12
+ - acme lschangeset
+ - acme ct lsvtree <filename>
+ - acme ct lsvtree -graph
+ - acme lsvtree -g -comp <comp> -all
+
+ - acme branch_create -base_version ws -branch ci-41-bugfix -comp <component>
+
+ - acme lslineup -lineup default.lu%EFR-000000xxxxx
+ - acme rl -start ci-35.lu%EFR-42213 -end ci-35.lu%EFR-44958 -skip_first 
+
+ - cat /nfs/enacvs/ws/ios_ena.complist | egrep -v __COMP | awk '{print $1 " " $7}'
+
+ - /usr/cisco/bin/acme rl -start ci-34.lu%<label> -end ws
+
+ - acme branch_create comp <your_comp> -branch ci-37 -base_ver ci-37-bugfix.lu
+ - acme update comp <your_comp>@ci-37/1 
+
+ -  source /sw/packages/ccache/current/bin/setup-ccache
+ -  Build Scripts
+    - /auto/mssbu-swtools/iox/bin/build_prp
+    - /auto/mssbu-swtools/iox/bin/build_hfr
+    - /auto/mssbu-swtools/iox/bin/build_gsr
+      - jam comp-gsr-mini.vm gsr-mgbl-p.pie gsr-mpls-p.pie \
+ 	    gsr-mcast-p.pie -j20 >xxx_log  2>&1
+
+--------------------------------------------------------------------------------
+Locations :
+
+CHANGES files : /nfs/scmena1/ios_ena/<comp>/<br>/CHANGES-<br>
+
+acme diff -comp dev_util/simplim -from_ver ci-33/1 -to_ver main/12
+acme diff -comp flash/include -from_ver main/22 -to_ver main/24
+acme diff -comp flash/include -from_ver default.lu%EFR-123 -to_ver default.lu%EFR-124
+
+% setenv ACME_CTL_FILE_USE_MASTER = 1
+% setenv ACME_DISABLE_TRIGS all
+% acme precommit -skip_merge_chk -comp x,y,z ...
+
+Lineup file : /auto/enacvs/lineups/ios_ena/<lineup>/<lineup.lu>
+
+ACME VOBS:
+---------
+/vob/ios_ena_protocols
+/vob/ios_ena_hw
+/vob/ios_ena_infra
+/vob/ios_ena_os
+/vob/ios_ena_pubcrypto
+/vob/ios_ena_test
+/vob/ios_ena_ui
+/vob/ios_ena_wan
+/vob/ios_ena_wbu
+/vob/ios_ena_privcrypto
+/vob/cpp_comp
+

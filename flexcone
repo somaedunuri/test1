@@ -1,0 +1,24 @@
+
+/ws/dev-poc/xr/ce_src/CeCreateVolume.pl -vol ce_xr_build_2 -c
+
+<pull WS and build images>
+acme nw -proj dev2a-cel62
+acme patch -input /ws/alsheu-sjc/tmp/cpfix.diff
+	new diffs :       /ws/alsheu-sjc/tmp/cpfix.diff
+
+/ws/dev-poc/xr/ce_src/CeFileListGen.pl -d /ws/dev-poc/xr/builds/ce_xr_build_2/ 
+
+ls -l /ws/dev-poc/xr/builds/ce_xr_build_2/filelist_BOM
+
+Permission change
+
+/ws/dev-poc/xr/ce_src/CeCreateSnapshot.pl -vol ce_xr_build_2 -snapshot ce_test_vol_snapshot_02
+
+/ws/dev-poc/xr/ce_src/CeCreateFlexClone.pl -vol ce_xr_build_2 -snapshot ce_test_vol_snapshot_02 -clone soma_build_2
+
+/ws/dev-poc/xr/ce_src/CeXcpChown.sh soma_build_2
+
+Deletion :
+
+/ws/dev-poc/xr/ce_src/CeCreateVolume.pl -vol ce_xr_build_2 -r
+

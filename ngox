@@ -1,0 +1,9 @@
+
+/auto/xrut/xrut-gold/ng-bringup/smoke-test.py -m -S `pwd` -w iox-bld8:/scratch1/soma/spirit-bf-0214 --vxr-use-full --vxr-use-64 | & tee smoke10.log 
+
+
+1.	pull calvados ws 
+2.	~rbc/bin/xrmk all 
+3.	/auto/cats3/vspirit/calvados.lu/patch_calvados.sh 
+4.	Then go to vxr enabled host to run calvados smoke test: 
+

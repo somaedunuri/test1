@@ -1,0 +1,16 @@
+
+mkview -i montalvo -v /vobs/mars -s /ws/soma-sjc -t git_mig
+cp -r /view/soma-montalvo.git_mig/vobs/mars  /ws/soma-sjc/mars_montalvo.git
+cd /ws/soma-sjc/mars_montalvo.git
+git init .
+git add -A
+git checkout -b montalvo
+git commit -am 'Initial commit to the new git repo'
+
+cd /nobackup/soma
+git clone /ws/soma-sjc/mars_montalvo.git mars_montalvo_ws
+cd mars_montalvo_ws
+
+#cp -r /view/soma-montalvo.git_mig/vobs/mars  /ws/soma-sjc/
+#mv mars mars_montalvo.git
+#cd mars_montalvo.git
